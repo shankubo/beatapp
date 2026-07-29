@@ -1,0 +1,5 @@
+{
+  "$comment": "Pack de sons libres charge a la demande. Chaque entree DOIT porter une licence verifiee (CC0-1.0 uniquement) et une URL source consultable. 'royalty-free' n'est pas une licence: c'est un terme marketing, et il est refuse. Le texte de licence original de chaque fichier est conserve dans public/samples/LICENSES/. Le chargeur fonctionne avec une liste vide: seules les boucles generees apparaissent alors dans l'application.",
+  "version": 1,
+  "samples": []
+}

@@ -1,0 +1,40 @@
+{
+  "title": "Exporter",
+  "cta": "Exporter",
+  "start": "Lancer l'export",
+  "quality": {
+    "label": "Qualité",
+    "uhd": "4K — {{width}} × {{height}}",
+    "uhdHint": "Idéal pour YouTube, qui diffuse réellement en 4K. Le fichier est nettement plus lourd et l'encodage plus long.",
+    "ultra": "Très haute — {{width}} × {{height}}",
+    "high": "Haute — {{width}} × {{height}}",
+    "medium": "Moyenne — {{width}} × {{height}}",
+    "hint": "La qualité moyenne est plus rapide et consomme moins de mémoire.",
+    "ultraHint": "Au-delà de la haute qualité, Instagram et WhatsApp ré-encodent la vidéo : le fichier est plus lourd sans être plus net chez le spectateur.",
+    "highUnavailable": "Cet appareil n'accepte pas le 1080 × 1920. La qualité moyenne reste disponible et convient à Instagram."
+  },
+  "summary": {
+    "duration": "Durée",
+    "clips": "Clips",
+    "resolution": "Résolution",
+    "estimatedSize": "Taille estimée"
+  },
+  "progress": {
+    "preparing": "Préparation…",
+    "mixingAudio": "Mixage de l'audio…",
+    "encodingVideo": "Encodage de la vidéo…",
+    "finalizing": "Finalisation du fichier…",
+    "percent": "{{value}} %",
+    "remaining": "Environ {{seconds}} s restantes",
+    "keepOpen": "Gardez cet écran ouvert pendant l'export."
+  },
+  "result": {
+    "title": "Votre reel est prêt",
+    "share": "Partager",
+    "download": "Enregistrer la vidéo",
+    "shareHint": "Partagez directement vers Instagram ou WhatsApp.",
+    "newExport": "Exporter à nouveau"
+  },
+  "cancel": "Annuler l'export",
+  "cancelled": "Export annulé"
+}

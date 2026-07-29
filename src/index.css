@@ -1,0 +1,214 @@
+@import 'tailwindcss';
+
+/*
+ * Tailwind v4: le theme vit dans le CSS, il n'y a plus de tailwind.config.js.
+ *
+ * Direction visuelle: l'objet de cette app est le BEAT, pas la video. On
+ * emprunte donc au monde des tables de mixage et des sequenceurs materiels
+ * plutot qu'a celui des editeurs video. Le graphite est legerement vert-noir
+ * (et non bleu-noir comme la plupart des UI sombres), et l'accent est une
+ * chartreuse de VU-metre: une couleur d'instrument.
+ *
+ * L'echelle a ete refondue sur des CONTRASTES MESURES, pas a l'oeil. La version
+ * precedente etait illisible: bordures a 1,43:1 (la norme pour un contour
+ * porteur de sens est 3,0) et texte d'aide a 2,10:1 (norme 4,5). Tout paraissait
+ * noir sur noir. Les paliers sont desormais nettement ecartes et chaque token a
+ * un emploi verifie, note en commentaire.
+ */
+@theme {
+  /*
+   * Graphite chaud, nuance verte. Ratios mesures contre `ink-900`:
+   * 400 -> 7,8:1   300 -> 10,8:1   200 -> 13,7:1   50 -> 16,6:1
+   */
+  --color-ink-950: #0e110d; /* fond de l'application */
+  --color-ink-900: #171b15; /* surface de base: barres, panneaux */
+  --color-ink-850: #20251d; /* surface surelevee: cartes, champs */
+  --color-ink-800: #2b3127; /* surface active, separateurs discrets */
+  --color-ink-700: #4d5647; /* trait de separation */
+  --color-ink-600: #6b745f; /* BORDURE standard: 3,6:1 sur ink-900 */
+  --color-ink-500: #8b9480; /* etat desactive: 5,5:1 */
+  --color-ink-400: #a8b19d; /* texte secondaire: 7,8:1 */
+  --color-ink-300: #c6cebb; /* texte d'aide: 10,8:1 */
+  --color-ink-200: #e1e6da; /* texte courant */
+  --color-ink-50: #f8faf6; /* titres */
+
+  /*
+   * Chartreuse = le beat. Playhead, ticks de rythme, clips verrouilles sur le
+   * tempo, et l'action principale d'un ecran. Elle reste rare: c'est ce qui lui
+   * donne son sens.
+   */
+  --color-beat-300: #f2ff7a;
+  --color-beat-400: #e8ff3a;
+  --color-beat-500: #c8e01c;
+  --color-beat-600: #9bb010;
+
+  /*
+   * Accents FONCTIONNELS: chaque famille designe une seule chose, ce qui rend
+   * les panneaux reconnaissables sans lire leur titre.
+   * Tous verifies a plus de 4,5:1 sur `ink-850`, et en texte sombre sur aplat.
+   */
+  --color-media-400: #5ec8f0; /* images et videos */
+  --color-media-500: #38b0e0;
+  --color-audio-400: #b98cff; /* son et musique */
+  --color-audio-500: #9d63f5;
+  --color-ok-400: #4ade80; /* succes, etape accomplie */
+  --color-overlay-300: #fcd34d; /* incrustations texte — ambre clair */
+  --color-overlay-400: #fbbf24; /* incrustations texte — ambre */
+  --color-overlay-500: #d97706;
+
+  /* Vermillon: enregistrement et actions destructrices uniquement. */
+  --color-danger-400: #ff8a6b;
+  --color-danger-500: #ff6a45;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  /* Les timecodes passent en chiffres tabulaires: un compteur qui gigote
+     pendant la lecture est un defaut visible. */
+  --font-mono:
+    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, monospace;
+
+  /* Hauteurs fixes de la coquille mobile (budget: 692px sur 844). */
+  --spacing-appbar: 2.75rem; /* 44px */
+  --spacing-transport: 2.75rem; /* 44px */
+  --spacing-ruler: 2.125rem; /* 34px */
+  --spacing-strip: 4.625rem; /* 74px */
+  --spacing-tabs: 3.5rem; /* 56px */
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    /* Les insets sont lus une fois ici puis reutilises partout. */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    /* 100dvh et non 100vh: la barre retractable de Safari iOS rognerait les onglets. */
+    min-height: 100dvh;
+    margin: 0;
+    background-color: var(--color-ink-950);
+    color: var(--color-ink-50);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* L'app est un editeur plein ecran: aucun scroll de page, aucun overscroll. */
+    overscroll-behavior: none;
+    overflow: hidden;
+  }
+
+  /* Le double-tap-zoom iOS ajoute 300ms de latence et casse le double-tap de la timeline. */
+  button,
+  [role='button'],
+  label,
+  input,
+  select {
+    touch-action: manipulation;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Le texte de l'UI ne doit jamais etre selectionnable pendant un drag de timeline. */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ...sauf la ou l'utilisateur saisit vraiment du texte. */
+  input,
+  textarea,
+  [contenteditable='true'] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* iOS zoome sur les champs dont la police fait moins de 16px. */
+  input,
+  textarea,
+  select {
+    font-size: 1rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-beat-400);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Tout compteur de temps: chiffres de largeur fixe, donc aucun tremblement. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+@utility safe-pt {
+  padding-top: var(--safe-top);
+}
+
+@utility safe-pb {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* Masque la scrollbar sans desactiver le scroll (la ClipStrip defile horizontalement). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Surface surelevee.
+ *
+ * Sur un fond sombre, un simple changement de gris ne suffit pas a faire lire un
+ * element comme « pose au-dessus »: l'ecart de luminance entre deux paliers
+ * voisins ne depasse pas 1,2:1. On ajoute donc un liseré clair en haut (la
+ * lumiere vient d'en haut) et une ombre portee. C'est ce qui donne du relief
+ * sans eclaircir le fond.
+ */
+@utility surface {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 6%),
+    0 1px 2px rgb(0 0 0 / 40%);
+}
+
+/** Relief plus marque, pour les elements flottants (dialogues, panneaux). */
+@utility surface-raised {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    0 8px 24px -8px rgb(0 0 0 / 70%);
+}
+
+/**
+ * Halo d'accent.
+ *
+ * Sert a marquer l'element actif (onglet courant, carte selectionnee) sans
+ * remplir un aplat, ce qui ecraserait le contenu.
+ */
+@utility ring-accent {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 6%),
+    0 0 0 1px rgb(232 255 58 / 35%),
+    0 0 16px -4px rgb(232 255 58 / 25%);
+}

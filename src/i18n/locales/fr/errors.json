@@ -1,0 +1,63 @@
+{
+  "generic": {
+    "title": "Quelque chose s'est mal passé",
+    "body": "Réessayez. Si le problème persiste, rechargez l'application.",
+    "reload": "Recharger"
+  },
+  "import": {
+    "unsupportedType": "Ce format de fichier n'est pas pris en charge.",
+    "corrupted": "Ce fichier semble illisible ou endommagé.",
+    "tooLarge": "Ce fichier dépasse la taille maximale de {{maxMb}} Mo.",
+    "tooLong": "Ce média dépasse la durée maximale de {{maxMinutes}} minutes.",
+    "decodeFailed": "Impossible de lire ce média sur cet appareil.",
+    "noFileSelected": "Aucun fichier sélectionné."
+  },
+  "url": {
+    "invalid": "Cette adresse n'est pas valide. Elle doit commencer par https://",
+    "blockedHost": "Ce site n'autorise pas le téléchargement direct. Enregistrez la vidéo dans votre pellicule, puis importez le fichier.",
+    "fetchFailed": "Le fichier n'a pas pu être téléchargé. Le site le refuse peut-être, ou l'adresse ne pointe pas vers un fichier.",
+    "notMedia": "Cette adresse ne renvoie pas une image, une vidéo ni un fichier audio.",
+    "insecure": "Seules les adresses https sont acceptées."
+  },
+  "storage": {
+    "quotaExceeded": "L'espace de stockage est insuffisant. Supprimez des médias.",
+    "saveFailed": "Le projet n'a pas pu être enregistré.",
+    "loadFailed": "Le projet n'a pas pu être ouvert."
+  },
+  "audio": {
+    "decodeFailed": "Ce fichier audio n'a pas pu être décodé.",
+    "analysisFailed": "L'analyse du rythme a échoué.",
+    "tooQuiet": "Ce fichier est trop silencieux pour détecter un rythme."
+  },
+  "ai": {
+    "noKey": "Saisissez d'abord votre clé API.",
+    "tooLarge": "Cet audio est trop volumineux à envoyer. Raccourcissez l'extrait.",
+    "tooLong": "Cet audio est trop long à transcrire. Raccourcissez l'extrait.",
+    "unauthorized": "Clé API refusée. Vérifiez-la, puis réessayez.",
+    "rateLimited": "Quota atteint. Patientez quelques instants, puis réessayez.",
+    "noAudioSupport": "Ce moteur ne sait pas transcrire d'audio. Utilisez Gemini.",
+    "emptyResult": "Aucune parole n'a été trouvée dans cet audio.",
+    "requestFailed": "La requête a échoué. Vérifiez votre connexion."
+  },
+  "speech": {
+    "unsupported": "La dictée n'est pas disponible sur ce navigateur. Utilisez Chrome ou Edge.",
+    "denied": "L'accès au micro a été refusé.",
+    "failed": "La dictée s'est interrompue."
+  },
+  "lyricsFile": {
+    "unreadable": "Ce fichier n'est ni un .lrc ni un .srt reconnaissable.",
+    "empty": "Aucune parole horodatée n'a été trouvée dans ce fichier."
+  },
+  "export": {
+    "unsupportedBrowser": {
+      "title": "Export impossible sur ce navigateur",
+      "body": "Beatapp encode la vidéo directement sur votre appareil, ce qui nécessite un navigateur récent. Ouvrez Beatapp dans Chrome (Android) ou Safari 26 ou plus récent (iPhone).",
+      "fallbackOffer": "Exporter en WebM à la place",
+      "fallbackNote": "Le WebM n'est pas accepté par Instagram, mais fonctionne sur WhatsApp et sur ordinateur."
+    },
+    "empty": "Ajoutez au moins un clip avant d'exporter.",
+    "encodeFailed": "L'encodage a échoué. Essayez la qualité moyenne.",
+    "outOfMemory": "Mémoire insuffisante. Essayez la qualité moyenne ou un reel plus court.",
+    "interrupted": "L'export a été interrompu."
+  }
+}

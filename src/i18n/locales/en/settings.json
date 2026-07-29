@@ -1,0 +1,66 @@
+{
+  "title": "Settings",
+  "open": "Settings",
+  "platform": {
+    "label": "Destination",
+    "hint": "The ideal format is applied to the project. Preview and export follow.",
+    "instagramReel": "Instagram — Reel",
+    "instagramPost": "Instagram — Square post",
+    "instagramFeed": "Instagram — Feed",
+    "tiktok": "TikTok",
+    "youtubeShorts": "YouTube — Shorts",
+    "youtube": "YouTube — Landscape",
+    "facebookReel": "Facebook — Reel",
+    "facebookFeed": "Facebook — Feed"
+  },
+  "limits": {
+    "maxDuration": "Up to {{value}}",
+    "projectDuration": "Your montage runs {{value}}.",
+    "note": "Limits published by the platforms, shown for guidance only: they change without notice. A duration in red exceeds what the destination accepts."
+  },
+  "aspect": {
+    "label": "Image format",
+    "hint": "The thumbnail shows how much of a phone screen it fills."
+  },
+  "orientation": {
+    "horizontal": "Horizontal",
+    "square": "Square",
+    "vertical": "Vertical"
+  },
+  "custom": {
+    "label": "Custom format",
+    "hint": "Between {{min}} and {{max}} pixels. Sides are rounded to an even number, as the video encoder requires.",
+    "width": "Width",
+    "height": "Height"
+  },
+  "import": {
+    "label": "Automatic import",
+    "hint": "These settings apply to every imported image, so you don't have to fix them one by one.",
+    "fit": "Framing",
+    "fitCover": "Fill",
+    "fitContain": "Whole image",
+    "autoRotate": "Straighten automatically",
+    "autoRotateHint": "A landscape photo in a vertical frame (or the reverse) is turned a quarter turn to fill the screen better.",
+    "autoZoom": "Remove empty bars",
+    "autoZoomHint": "Zooms just enough to fill the gap left around the image. No effect in \"Fill\" mode, which already overflows.",
+    "autoCenter": "Centre on the subject",
+    "autoCenterHint": "Frames on the most detailed area — often the face in a portrait. Analysed on your device, without face recognition.",
+    "note": "These are starting points: every shot stays editable afterwards in the Edit panel."
+  },
+  "guides": {
+    "label": "Preview guides",
+    "hint": "These guides change nothing in the video: they only appear in the preview, to help you frame.",
+    "framing": "Show framing information",
+    "framingHint": "Outlines the shot on the preview and reports what will be cropped or left empty. Hidden by default, because a shot in \"Fill\" mode always overflows a little."
+  },
+  "background": {
+    "label": "Background",
+    "hint": "Visible around a shot that doesn't fill the frame. Blur reuses the image itself instead of leaving black bars.",
+    "color": "Black",
+    "blur": "Blurred image"
+  },
+  "output": {
+    "label": "Output",
+    "hint": "Dimensions of the exported file at high quality. Other tiers keep this format."
+  }
+}

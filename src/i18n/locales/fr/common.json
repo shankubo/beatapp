@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "Beatapp",
+    "tagline": "Des reels calés sur le beat, depuis votre téléphone."
+  },
+  "action": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "done": "Terminé",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "back": "Retour",
+    "add": "Ajouter",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "en": "English",
+    "ta": "தமிழ்"
+  },
+  "privacy": {
+    "onDevice": "Tout reste sur votre appareil",
+    "explanation": "Vos photos, vidéos et musiques ne quittent jamais votre téléphone. Aucun compte, aucun envoi vers un serveur."
+  },
+  "unit": {
+    "seconds": "{{count}} s",
+    "bpm": "{{value}} BPM",
+    "clipCount_one": "{{count}} clip",
+    "clipCount_other": "{{count}} clips"
+  },
+  "state": {
+    "loading": "Chargement…",
+    "empty": "Rien pour le moment",
+    "analyzing": "Analyse en cours…"
+  },
+  "pwa": {
+    "updateAvailable": "Une nouvelle version est disponible.",
+    "reload": "Mettre à jour",
+    "offlineReady": "Beatapp fonctionne maintenant hors ligne."
+  }
+}

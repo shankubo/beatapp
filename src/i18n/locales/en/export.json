@@ -1,0 +1,40 @@
+{
+  "title": "Export",
+  "cta": "Export",
+  "start": "Start export",
+  "quality": {
+    "label": "Quality",
+    "uhd": "4K — {{width}} × {{height}}",
+    "uhdHint": "Ideal for YouTube, which really does serve 4K. The file is much heavier and encoding takes longer.",
+    "ultra": "Very high — {{width}} × {{height}}",
+    "high": "High — {{width}} × {{height}}",
+    "medium": "Medium — {{width}} × {{height}}",
+    "hint": "Medium quality is faster and uses less memory.",
+    "ultraHint": "Above high quality, Instagram and WhatsApp re-encode the video: the file is heavier without looking sharper to viewers.",
+    "highUnavailable": "This device can't encode 1080 × 1920. Medium quality is available and works for Instagram."
+  },
+  "summary": {
+    "duration": "Duration",
+    "clips": "Clips",
+    "resolution": "Resolution",
+    "estimatedSize": "Estimated size"
+  },
+  "progress": {
+    "preparing": "Preparing…",
+    "mixingAudio": "Mixing audio…",
+    "encodingVideo": "Encoding video…",
+    "finalizing": "Finalising the file…",
+    "percent": "{{value}}%",
+    "remaining": "About {{seconds}}s remaining",
+    "keepOpen": "Keep this screen open while exporting."
+  },
+  "result": {
+    "title": "Your reel is ready",
+    "share": "Share",
+    "download": "Save video",
+    "shareHint": "Share straight to Instagram or WhatsApp.",
+    "newExport": "Export again"
+  },
+  "cancel": "Cancel export",
+  "cancelled": "Export cancelled"
+}

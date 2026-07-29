@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "Beatapp",
+    "tagline": "Beat-synced reels, straight from your phone."
+  },
+  "action": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "done": "Done",
+    "retry": "Retry",
+    "save": "Save",
+    "undo": "Undo",
+    "redo": "Redo",
+    "back": "Back",
+    "add": "Add",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
+  "language": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English",
+    "ta": "தமிழ்"
+  },
+  "privacy": {
+    "onDevice": "Everything stays on your device",
+    "explanation": "Your photos, videos and music never leave your phone. No account, nothing uploaded to a server."
+  },
+  "unit": {
+    "seconds": "{{count}}s",
+    "bpm": "{{value}} BPM",
+    "clipCount_one": "{{count}} clip",
+    "clipCount_other": "{{count}} clips"
+  },
+  "state": {
+    "loading": "Loading…",
+    "empty": "Nothing yet",
+    "analyzing": "Analysing…"
+  },
+  "pwa": {
+    "updateAvailable": "A new version is available.",
+    "reload": "Update",
+    "offlineReady": "Beatapp now works offline."
+  }
+}

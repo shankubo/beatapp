@@ -1,0 +1,94 @@
+{
+  "generated": {
+    "fourOnFloor": {
+      "name": "Quatre au sol",
+      "description": "Grosse caisse régulière, 120 BPM — idéal pour un diaporama rythmé."
+    },
+    "boomBap": {
+      "name": "Boom bap",
+      "description": "Groove hip-hop posé, 90 BPM."
+    },
+    "trapHats": {
+      "name": "Charleston trap",
+      "description": "Charleston roulé et 808, 140 BPM."
+    },
+    "houseGroove": {
+      "name": "Groove house",
+      "description": "Charleston décalé et clap, 126 BPM."
+    },
+    "amapiano": {
+      "name": "Amapiano",
+      "description": "Basse percussive glissante et shaker, 112 BPM."
+    },
+    "afrobeats": {
+      "name": "Afrobeats",
+      "description": "Percussions balancées sur une pulsation souple, 104 BPM."
+    },
+    "phonk": {
+      "name": "Phonk",
+      "description": "Frappes lourdes et cloche, rapide — pour les coupes serrées, 160 BPM."
+    },
+    "lofiChill": {
+      "name": "Lo-fi posé",
+      "description": "Batterie feutrée pour un montage calme, 88 BPM."
+    },
+    "drumFill": {
+      "name": "Montée",
+      "description": "Roulement de caisse pour lancer un enchaînement, 128 BPM."
+    }
+  },
+  "templates": {
+    "beatSlideshow": {
+      "name": "Diaporama rythmé",
+      "description": "8 photos, une par temps, avec un fondu court. 15 secondes."
+    },
+    "cinematicTravel": {
+      "name": "Voyage cinématique",
+      "description": "Plans lents avec zoom progressif et légères transitions."
+    },
+    "countdown": {
+      "name": "Compte à rebours",
+      "description": "Chiffres animés calés sur les temps, pour une annonce."
+    },
+    "quickCuts": {
+      "name": "Coupes rapides",
+      "description": "Une image par demi-temps — énergique et très court."
+    },
+    "beforeAfter": {
+      "name": "Avant / après",
+      "description": "Deux plans longs séparés par un flash sur le beat."
+    },
+    "title": "Modèles de reels",
+    "intro": "Choisissez une recette de montage : elle pose la cadence, les transitions et le rythme des coupes.",
+    "open": "Modèles",
+    "back": "Tous les modèles",
+    "duration": "{{value}} s",
+    "clipsHint_one": "~{{count}} photo",
+    "clipsHint_other": "~{{count}} photos",
+    "onBeat": "Coupes calées sur le rythme",
+    "uniform": "Durées réparties également",
+    "cuts_one": "{{count}} coupe",
+    "cuts_other": "{{count}} coupes",
+    "action": {
+      "start": "Commencer avec ce modèle",
+      "apply": "Appliquer à mon montage",
+      "startNewHint": "Pour repartir de zéro, utilisez « Nouveau » dans la barre du haut."
+    },
+    "warn": {
+      "tooFew": "Ce modèle est prévu pour environ {{count}} plans ; vous en avez moins, les plans seront donc plus longs.",
+      "tooMany": "Ce modèle est prévu pour environ {{count}} plans ; vous en avez bien plus, le reel sera donc plus long."
+    },
+    "withMusic": "Ajoute une boucle assortie ({{bpm}} BPM)",
+    "applied": "Modèle appliqué",
+    "previewLabel": "Aperçu du modèle",
+    "previewHint": "Aperçu avec des images de démonstration : vos photos prendront leur place."
+  },
+  "license": {
+    "label": "Licence",
+    "cc0": "Domaine public (CC0)",
+    "generated": "Généré par Beatapp — libre d'utilisation",
+    "attribution": "Crédit : {{author}}",
+    "source": "Source"
+  },
+  "packEmpty": "Aucun son libre installé. Les boucles intégrées restent disponibles."
+}

@@ -1,0 +1,63 @@
+{
+  "generic": {
+    "title": "Something went wrong",
+    "body": "Try again. If the problem persists, reload the app.",
+    "reload": "Reload"
+  },
+  "import": {
+    "unsupportedType": "This file format isn't supported.",
+    "corrupted": "This file appears unreadable or damaged.",
+    "tooLarge": "This file exceeds the {{maxMb}} MB limit.",
+    "tooLong": "This media exceeds the {{maxMinutes}} minute limit.",
+    "decodeFailed": "This media can't be read on this device.",
+    "noFileSelected": "No file selected."
+  },
+  "url": {
+    "invalid": "That address isn't valid. It must start with https://",
+    "blockedHost": "This site doesn't allow direct downloads. Save the video to your camera roll, then import the file.",
+    "fetchFailed": "The file couldn't be downloaded. The site may be refusing it, or the address doesn't point to a file.",
+    "notMedia": "That address doesn't return an image, video or audio file.",
+    "insecure": "Only https addresses are accepted."
+  },
+  "storage": {
+    "quotaExceeded": "Not enough storage space. Remove some media.",
+    "saveFailed": "The project couldn't be saved.",
+    "loadFailed": "The project couldn't be opened."
+  },
+  "ai": {
+    "noKey": "Enter your API key first.",
+    "tooLarge": "This audio is too large to send. Shorten the excerpt.",
+    "tooLong": "This audio is too long to transcribe. Shorten the excerpt.",
+    "unauthorized": "API key rejected. Check it and try again.",
+    "rateLimited": "Quota reached. Wait a moment, then try again.",
+    "noAudioSupport": "This engine can't transcribe audio. Use Gemini.",
+    "emptyResult": "No lyrics were found in this audio.",
+    "requestFailed": "The request failed. Check your connection."
+  },
+  "speech": {
+    "unsupported": "Dictation isn't available in this browser. Use Chrome or Edge.",
+    "denied": "Microphone access was denied.",
+    "failed": "Dictation stopped."
+  },
+  "lyricsFile": {
+    "unreadable": "This file isn't a recognisable .lrc or .srt.",
+    "empty": "No timed lyrics were found in this file."
+  },
+  "audio": {
+    "decodeFailed": "This audio file couldn't be decoded.",
+    "analysisFailed": "Beat analysis failed.",
+    "tooQuiet": "This file is too quiet to detect a beat."
+  },
+  "export": {
+    "unsupportedBrowser": {
+      "title": "Export isn't available in this browser",
+      "body": "Beatapp encodes video directly on your device, which needs a recent browser. Open Beatapp in Chrome (Android) or Safari 26 or newer (iPhone).",
+      "fallbackOffer": "Export as WebM instead",
+      "fallbackNote": "WebM isn't accepted by Instagram, but works on WhatsApp and desktop."
+    },
+    "empty": "Add at least one clip before exporting.",
+    "encodeFailed": "Encoding failed. Try medium quality.",
+    "outOfMemory": "Not enough memory. Try medium quality or a shorter reel.",
+    "interrupted": "The export was interrupted."
+  }
+}

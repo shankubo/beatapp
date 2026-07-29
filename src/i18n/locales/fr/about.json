@@ -1,0 +1,61 @@
+{
+  "title": "À propos",
+  "open": "À propos",
+  "tagline": "Des reels calés sur le rythme, directement dans votre navigateur.",
+  "version": "Version {{version}}",
+  "developer": {
+    "label": "Développement",
+    "name": "Shan K."
+  },
+  "what": {
+    "title": "Ce que fait l'application",
+    "body": "Beatapp assemble vos photos et vidéos en un montage calé sur le rythme de votre musique. Vous importez vos médias et une piste audio, l'application analyse le tempo, puis répartit vos plans sur les temps. Vous ajustez ensuite les durées, le cadrage, les textes et les effets, avant d'exporter un fichier MP4 prêt à publier."
+  },
+  "privacy": {
+    "title": "Vos fichiers restent chez vous",
+    "body": "Tout se passe dans votre navigateur. Aucun compte n'est requis, aucun fichier n'est envoyé vers un serveur, et aucune donnée d'usage n'est collectée. Vos photos, vidéos et musiques ne quittent jamais votre appareil : elles sont stockées localement et l'analyse comme l'export s'exécutent sur votre machine.",
+    "offline": "Une fois chargée, l'application fonctionne sans connexion."
+  },
+  "features": {
+    "title": "Principales fonctions",
+    "beat": "Détection automatique du tempo et calage des plans sur les temps",
+    "import": "Import de photos, de vidéos, d'un reel existant, de fichiers audio ou d'un lien direct",
+    "edit": "Découpe, recadrage, rotation, zoom lent et filtres colorimétriques",
+    "transitions": "Transitions entre plans, avec sens et effet cumulé",
+    "text": "Textes, paroles synchronisées, masques découpés dans les lettres",
+    "export": "Export MP4 jusqu'en 4K, avec choix du format et de la qualité"
+  },
+  "limits": {
+    "title": "Ce que l'application ne peut pas faire",
+    "social": "Les liens Instagram, TikTok et YouTube ne peuvent pas être téléchargés : ces plateformes l'interdisent depuis un navigateur. Enregistrez d'abord la vidéo dans votre appareil, puis importez le fichier.",
+    "transcription": "Les paroles ne sont pas transcrites automatiquement. Aucun moteur de reconnaissance vocale ne fonctionne dans un navigateur sans envoyer votre audio ailleurs, ce qui contredirait la promesse de confidentialité. Vous collez vos paroles, l'application les cale sur le rythme détecté."
+  },
+  "legal": {
+    "title": "Mentions légales",
+    "intro": "En utilisant cette application, vous acceptez les conditions ci-dessous.",
+    "copyright": {
+      "title": "Droits d'auteur",
+      "body": "Vous êtes seul responsable des droits attachés aux photos, vidéos et musiques que vous importez. Vous devez vous assurer de détenir les autorisations nécessaires pour utiliser, modifier et diffuser chaque média, notamment les droits d'auteur, les droits voisins et les droits à l'image des personnes filmées ou photographiées. L'application ne vérifie ni ne revendique aucun droit sur les contenus que vous y traitez."
+    },
+    "personal": {
+      "title": "Usage personnel",
+      "body": "Cette application est destinée à un usage personnel et privé. Toute édition, reproduction, diffusion ou publication des vidéos et des extraits que vous produisez relève de votre seule initiative et de votre seule responsabilité, y compris lorsque ces contenus sont publiés sur des réseaux sociaux ou toute autre plateforme."
+    },
+    "liability": {
+      "title": "Limitation de responsabilité",
+      "body": "L'application est fournie « en l'état », sans garantie d'aucune sorte, expresse ou implicite, notamment sans garantie de qualité marchande, d'adéquation à un usage particulier ou d'absence de contrefaçon. Le développeur et l'hébergeur de cette application déclinent toute responsabilité quant à l'usage qui en est fait, aux contenus traités ou produits, ainsi qu'à tout dommage direct ou indirect pouvant résulter de son utilisation, y compris la perte de données ou de travail."
+    },
+    "host": {
+      "title": "Hébergement",
+      "body": "L'hébergeur se limite à mettre à disposition les fichiers de l'application. Le traitement des médias s'effectuant entièrement sur votre appareil, l'hébergeur n'a accès à aucun de vos contenus et ne saurait être tenu responsable de leur usage."
+    },
+    "data": {
+      "title": "Données personnelles",
+      "body": "Aucune donnée personnelle n'est collectée, transmise ni conservée par le développeur ou l'hébergeur. Les projets et médias que vous créez sont enregistrés uniquement dans le stockage local de votre navigateur, sur votre appareil. Vider les données de votre navigateur les supprime définitivement."
+    }
+  },
+  "licenses": {
+    "title": "Licences",
+    "body": "Les boucles audio intégrées sont générées par synthèse : elles ne dépendent d'aucune licence tierce. Les samples éventuellement fournis sont sous licence CC0-1.0, source et licence consignées dans le dépôt."
+  }
+}

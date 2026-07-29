@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      viewport-fit=cover est requis pour que env(safe-area-inset-*) renvoie des
+      valeurs reelles sur iPhone. maximum-scale + user-scalable=no evitent que le
+      zoom navigateur casse les gestes de la timeline (pinch = zoom timeline).
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <!--
+      Securite par defaut: les medias de l'utilisateur restent dans le
+      navigateur; rien n'est envoye vers un serveur. 'unsafe-inline' pour
+      style-src est requis par Tailwind/React (styles inline sur les elements
+      animes).
+
+      `connect-src` autorise `https:` UNIQUEMENT pour l'import par lien, que
+      l'utilisateur declenche explicitement en collant une adresse. La portee est
+      volontairement limitee:
+      - `https:` et non `*` — aucune requete en clair, donc pas de contenu mixte;
+      - le flux est descendant: on telecharge un fichier, on n'envoie jamais de
+        donnees de l'utilisateur (`credentials: 'omit'`, `referrerPolicy:
+        'no-referrer'`);
+      - `script-src` reste a `'self'`: un fichier telecharge ne peut en aucun cas
+        etre execute, il est traite comme un media et valide par magic bytes.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self';
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' blob: data:;
+               media-src 'self' blob:;
+               font-src 'self';
+               worker-src 'self' blob:;
+               connect-src 'self' https:;
+               object-src 'none';
+               base-uri 'none';
+               form-action 'none';
+               frame-ancestors 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#09090b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="color-scheme" content="dark" />
+    <!-- Favicon standard -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/generated/web/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/generated/web/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/generated/web/favicon-48.png" />
+    <!-- Apple Touch Icons (iOS / iPadOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/generated/ios/AppIcon-60@3x.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/generated/ios/AppIcon-iPad-83.5@2x.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/generated/ios/AppIcon-iPad-76@2x.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/generated/ios/AppIcon-60@2x.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <!-- Windows tiles -->
+    <meta name="msapplication-TileImage" content="/icons/generated/web/tile-150.png" />
+    <meta name="msapplication-TileColor" content="#09090b" />
+    <title>Beatapp</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

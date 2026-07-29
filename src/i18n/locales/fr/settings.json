@@ -1,0 +1,66 @@
+{
+  "title": "Réglages",
+  "open": "Réglages",
+  "platform": {
+    "label": "Destination",
+    "hint": "Le format idéal est appliqué au projet. L'aperçu et l'export suivent.",
+    "instagramReel": "Instagram — Reel",
+    "instagramPost": "Instagram — Post carré",
+    "instagramFeed": "Instagram — Fil",
+    "tiktok": "TikTok",
+    "youtubeShorts": "YouTube — Shorts",
+    "youtube": "YouTube — Paysage",
+    "facebookReel": "Facebook — Reel",
+    "facebookFeed": "Facebook — Fil"
+  },
+  "limits": {
+    "maxDuration": "Jusqu'à {{value}}",
+    "projectDuration": "Votre montage dure {{value}}.",
+    "note": "Limites publiées par les plateformes, données à titre indicatif : elles changent sans préavis. Une durée en rouge dépasse ce que la destination accepte."
+  },
+  "aspect": {
+    "label": "Format d'image",
+    "hint": "La vignette montre la place occupée sur un écran de téléphone."
+  },
+  "orientation": {
+    "horizontal": "Horizontal",
+    "square": "Carré",
+    "vertical": "Vertical"
+  },
+  "custom": {
+    "label": "Format personnalisé",
+    "hint": "Entre {{min}} et {{max}} pixels. Les côtés sont arrondis à un nombre pair, comme l'exige l'encodeur vidéo.",
+    "width": "Largeur",
+    "height": "Hauteur"
+  },
+  "import": {
+    "label": "Import automatique",
+    "hint": "Ces réglages s'appliquent à chaque image importée, pour éviter de les reprendre une par une.",
+    "fit": "Cadrage",
+    "fitCover": "Remplir",
+    "fitContain": "Image entière",
+    "autoRotate": "Redresser automatiquement",
+    "autoRotateHint": "Une photo paysage dans un cadre vertical (ou l'inverse) est tournée d'un quart de tour pour mieux remplir l'écran.",
+    "autoZoom": "Supprimer les bandes vides",
+    "autoZoomHint": "Zoome juste assez pour combler le vide laissé autour de l'image. Sans effet en mode « Remplir », qui déborde déjà.",
+    "autoCenter": "Centrer sur le sujet",
+    "autoCenterHint": "Cadre sur la zone la plus riche en détail — souvent le visage sur un portrait. Analysé sur votre appareil, sans reconnaissance faciale.",
+    "note": "Ce sont des points de départ : chaque plan reste modifiable ensuite dans le panneau Modifier."
+  },
+  "guides": {
+    "label": "Repères d'aperçu",
+    "hint": "Ces repères ne modifient rien à la vidéo : ils n'apparaissent que dans l'aperçu, pour vous aider à cadrer.",
+    "framing": "Afficher les informations de cadrage",
+    "framingHint": "Trace l'emprise du plan sur l'aperçu et indique ce qui sera rogné ou laissé vide. Masqué par défaut, car un plan en mode « Remplir » déborde toujours un peu."
+  },
+  "background": {
+    "label": "Fond",
+    "hint": "Visible autour d'un plan qui ne remplit pas le cadre. Le flou reprend l'image elle-même, au lieu de laisser des bandes noires.",
+    "color": "Noir",
+    "blur": "Flou de l'image"
+  },
+  "output": {
+    "label": "Sortie",
+    "hint": "Dimensions du fichier exporté en haute qualité. Les autres paliers gardent ce format."
+  }
+}

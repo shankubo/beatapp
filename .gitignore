@@ -1,0 +1,21 @@
+node_modules/
+dist/
+dev-dist/
+coverage/
+*.local
+
+# Sorties de tests
+tests/browser/__screenshots__/
+.vitest-attachments/
+
+# Reglages locaux de l'outillage: propres a une machine, jamais partages.
+.claude/settings.local.json
+
+# Fichiers d'environnement
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
