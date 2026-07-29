@@ -1,0 +1,112 @@
+# Verification, construction de l'image Docker et publication.
+#
+# Le Raspberry Pi ne compile RIEN: il tire une image deja construite depuis le
+# registre GitHub. Un build Vite sur un RPi prend plusieurs minutes et echoue
+# par manque de memoire sur les modeles a 1 Go, alors qu'il tient en une minute
+# sur le runner.
+
+name: Build et publication de l'image
+
+on:
+  push:
+    branches: [main]
+  # Permet de relancer une publication a la main depuis l'onglet Actions, sans
+  # avoir a produire un commit vide.
+  workflow_dispatch:
+
+# Un seul build a la fois: deux pushes rapproches produiraient sinon deux
+# publications concurrentes, et la plus lente ecraserait la plus recente.
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ${{ github.repository }}
+
+jobs:
+  # Les portes du projet, dans l'ordre du CLAUDE.md. Un job SEPARE de la
+  # construction: publier une image qui ne compile pas ou dont les traductions
+  # sont incompletes serait pire que ne rien publier.
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verifier les types
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Coherence des traductions
+        run: npm run i18n:check
+
+      # Les tests navigateur demandent un vrai Chromium: on l'installe a la
+      # demande plutot que de le trainer dans l'image de base.
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests navigateur
+        run: npm run test:browser
+
+  publier:
+    needs: verifier
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Necessaire pour pousser l'image sur ghcr.io.
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # QEMU et Buildx: le Raspberry Pi est en arm64, le runner en amd64.
+      # Sans emulation, l'image produite serait inexecutable sur le RPi.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Connexion au registre
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Etiquettes
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+          # `latest` pour le suivi continu, le SHA pour pouvoir revenir en
+          # arriere sur une version precise apres un deploiement rate.
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - name: Construire et publier
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # arm64 pour le RPi (modeles 3 et suivants en 64 bits), amd64 pour
+          # pouvoir tester l'image sur une machine ordinaire.
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BASE_PATH=/beatapp/
+          # Cache porte par le registre: sans lui, `npm ci` serait rejoue
+          # integralement a chaque build, pour plusieurs minutes.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -6,7 +6,25 @@ import { fileURLToPath, URL } from 'node:url';
 
 import pkg from './package.json' with { type: 'json' };
 
+/*
+  Chemin sous lequel l'application est servie.
+
+  Vaut `/` en developpement et pour un hebergement a la racine; le deploiement
+  sur https://app.francotamouls.com/beatapp/ le surcharge via BASE_PATH.
+
+  Il ne suffit PAS de configurer nginx: `base` prefixe les URL des assets dans
+  l'index, et `start_url`/`scope` decident du perimetre du service worker. Un
+  manifeste reste a `/` sous un sous-chemin rend la PWA non installable et fait
+  servir au SW des fichiers hors de sa portee.
+
+  Toujours termine par une barre oblique: Vite concatene sans en ajouter, et
+  `/beatapp` produirait des URL comme `/beatappassets/index.js`.
+*/
+const BASE = process.env.BASE_PATH ?? '/';
+const BASE_PATH = BASE.endsWith('/') ? BASE : `${BASE}/`;
+
 export default defineConfig({
+  base: BASE_PATH,
   plugins: [
     react(),
     tailwindcss(),
@@ -25,8 +43,11 @@ export default defineConfig({
         description: 'Creez des reels rythmes pour Instagram et WhatsApp, directement sur votre telephone.',
         lang: 'fr',
         dir: 'ltr',
-        start_url: '/',
-        scope: '/',
+        // Suivent la base: sous un sous-chemin, un `start_url` a la racine
+        // ouvrirait le mauvais site depuis l'icone d'accueil.
+        start_url: BASE_PATH,
+        scope: BASE_PATH,
+        id: BASE_PATH,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#09090b',
@@ -58,7 +79,9 @@ export default defineConfig({
         // Les samples audio sont volumineux et charges a la demande: on les exclut du precache.
         globIgnores: ['**/samples/audio/**'],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
-        navigateFallback: 'index.html',
+        // Prefixe par la base: un repli sur `/index.html` servirait la racine du
+        // domaine, qui n'appartient pas a l'application sous un sous-chemin.
+        navigateFallback: `${BASE_PATH}index.html`,
         // Le nouveau service worker remplace l'ancien sans attendre la
         // fermeture de tous les onglets: sinon une mise a jour peut rester en
         // attente indefiniment.

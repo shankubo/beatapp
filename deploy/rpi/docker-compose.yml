@@ -1,0 +1,107 @@
+# Beatapp sur le Raspberry Pi.
+#
+# A poser dans /srv/beatapp/docker-compose.yml
+#
+# Le conteneur ne fait que servir des fichiers statiques: l'application est
+# entierement cliente, et l'encodage MP4 a lieu dans le navigateur du visiteur.
+# Sa consommation sur un RPi est donc negligeable.
+
+services:
+  beatapp:
+    image: ghcr.io/shankubo/beatapp:latest
+    container_name: beatapp
+    restart: unless-stopped
+
+    # Les DEUX etiquettes sont necessaires, et pour des raisons differentes:
+    # `scope` designe le Watchtower qui a le droit d'y toucher, `enable`
+    # l'active pour le mode `--label-enable`. Il manque l'une des deux et ce
+    # conteneur ne se met plus jamais a jour, silencieusement.
+    labels:
+      com.centurylinklabs.watchtower.scope: beatapp
+      com.centurylinklabs.watchtower.enable: 'true'
+
+    # Publie UNIQUEMENT sur la boucle locale: c'est le reverse proxy de l'hote
+    # qui expose le service avec le TLS de app.francotamouls.com. Sans le
+    # prefixe 127.0.0.1, Docker ouvrirait le port sur toutes les interfaces — y
+    # compris publiquement — en contournant au passage les regles de pare-feu.
+    #
+    # Le port d'hote est configurable: cette machine fait tourner d'autres
+    # conteneurs, et 8080 est le port le plus dispute qui soit. En cas de
+    # collision, poser BEATAPP_PORT dans un fichier `.env` a cote de ce
+    # compose suffit — sans toucher au fichier lui-meme, donc sans conflit a la
+    # prochaine mise a jour.
+    #
+    #   echo 'BEATAPP_PORT=8099' > /srv/beatapp/.env
+    ports:
+      - '127.0.0.1:${BEATAPP_PORT:-8080}:8080'
+
+    # --- Confinement ---
+    # Un serveur de fichiers statiques n'a besoin d'ecrire nulle part, sauf dans
+    # les quelques dossiers temporaires de nginx.
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # nginx a besoin de ces deux capacites pour changer d'utilisateur apres
+    # demarrage et lier son port.
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - NET_BIND_SERVICE
+
+    # Bornes memoire: sur un RPi partage avec d'autres services, un conteneur
+    # sans limite peut faire tuer les autres par le noyau en cas de fuite.
+    mem_limit: 256m
+
+    logging:
+      driver: json-file
+      options:
+        # Sans bornes, les journaux remplissent la carte SD en quelques mois.
+        max-size: '10m'
+        max-file: '3'
+
+  # Surveille le registre et met a jour le conteneur des qu'une nouvelle image
+  # est publiee. C'est ce qui rend le deploiement automatique — aucun port n'a
+  # besoin d'etre ouvert sur Internet, contrairement a un webhook.
+  #
+  # ATTENTION: cette machine fait tourner D'AUTRES conteneurs. Par defaut,
+  # Watchtower met a jour TOUT ce qu'il trouve — y compris ce dont ce depot n'a
+  # pas la charge, et au pire moment. Trois garde-fous ci-dessous l'en
+  # empechent; ne pas les retirer.
+  watchtower:
+    image: containrrr/watchtower
+    container_name: beatapp-watchtower
+    restart: unless-stopped
+    volumes:
+      # Lecture seule: Watchtower a besoin de piloter Docker, pas d'ecrire dans
+      # la socket. Un acces en ecriture a la socket equivaut a un acces root
+      # sur l'hote.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    # Garde-fou 1: `--scope beatapp` restreint l'action aux seuls conteneurs
+    # portant l'etiquette correspondante.
+    # Garde-fou 2: `--label-enable` lui interdit de toucher a quoi que ce soit
+    # qui ne porte pas explicitement une etiquette d'activation.
+    # Garde-fou 3: `--cleanup` ne supprime que les images DEVENUES obsoletes
+    # par sa propre action, jamais celles des autres conteneurs.
+    command: >
+      --interval 60
+      --cleanup
+      --scope beatapp
+      --label-enable
+
+    labels:
+      com.centurylinklabs.watchtower.scope: beatapp
+
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
