@@ -29,53 +29,50 @@ négligeable, même avec plusieurs utilisateurs simultanés.
 depuis le RPi. Pas de webhook à exposer, donc pas de service supplémentaire
 joignable de l'extérieur.
 
-## Si le RPi fait déjà tourner d'autres conteneurs
+## État de la machine cible
 
-C'est le cas ici, et trois points méritent une vérification avant d'installer.
+Relevé sur **192.168.1.87** (`shan@`) :
 
-### Watchtower ne touchera pas tes autres conteneurs
+| | |
+| --- | --- |
+| Architecture | `aarch64` — l'image arm64 convient |
+| Système | Debian 13 (trixie) |
+| Mémoire | 15 Go (aucune contrainte) |
+| Disque | 839 Go libres |
+| Docker | 29.3.1, Compose v5.1.1 |
+| Reverse proxy | **nginx sur l'hôte**, ports 80/443 |
+| Port 8080 | **libre** |
+| Watchtower | **aucun** — rien qui risque de toucher tes autres conteneurs |
 
-Par défaut, Watchtower met à jour **tout** ce qu'il trouve. Trois garde-fous
-l'en empêchent dans ce compose — `--scope beatapp`, `--label-enable`, et les
-étiquettes correspondantes sur le seul service `beatapp`. Ne les retire pas.
+Conteneurs déjà en production : `saisietemps`, `pwa-asso` (4000),
+`pwa-asso-adherents` (4001), `portainer` (9443).
 
-Si tu fais **déjà** tourner un Watchtower sans `--scope`, il mettra à jour
-Beatapp *et* tout le reste. Vérifie :
+### Le point qui demande une modification
+
+`app.francotamouls.com` **redirige aujourd'hui tout son trafic** vers
+`app.saisietemps.fr`, par un `return 301` au niveau du bloc `server`. Cette
+directive s'applique avant tout `location`, donc ajouter `/beatapp/` ne
+suffirait pas : l'application resterait inaccessible.
+
+Il faut déplacer le `return` dans un `location /`, ce qui en fait le cas par
+défaut au lieu d'une règle qui court-circuite tout. La marche à suivre exacte
+est en tête de `nginx-beatapp.conf`.
+
+## Tes autres conteneurs sont protégés
+
+Par défaut, Watchtower met à jour **tout** ce qu'il trouve — y compris
+`saisietemps`, `pwa-asso` et `portainer`. Trois garde-fous l'en empêchent dans
+ce compose : `--scope beatapp`, `--label-enable`, et les étiquettes portées par
+le seul service `beatapp`. **Ne les retire pas.**
+
+Aucun Watchtower ne tourne actuellement sur la machine, donc rien n'entre en
+conflit. Si tu en ajoutes un plus tard, vérifie qu'il porte un `--scope` :
 
 ```bash
 docker ps --filter ancestor=containrrr/watchtower --format '{{.Names}}'
-docker inspect LE_NOM --format '{{.Config.Cmd}}'
 ```
 
-S'il en existe un sans `--scope`, deux options : lui ajouter un scope, ou ne pas
-lancer celui-ci (`docker compose up -d beatapp` seul) et laisser l'existant
-gérer la mise à jour.
-
-### Le port 8080 est peut-être déjà pris
-
-```bash
-sudo ss -ltnp | grep -E ':(8080|443|80)\b'
-```
-
-S'il est occupé, choisis-en un autre sans modifier le compose :
-
-```bash
-echo 'BEATAPP_PORT=8099' | sudo tee /srv/beatapp/.env
-```
-
-Pense alors à reporter le port dans le snippet nginx (`proxy_pass`).
-
-### Ton reverse proxy est peut-être un conteneur
-
-Le snippet fourni suppose un **nginx sur l'hôte**. Si tu utilises Traefik,
-Caddy ou un nginx conteneurisé, l'intégration diffère :
-
-- **nginx conteneurisé** : le `proxy_pass` doit viser le nom du service
-  (`http://beatapp:8080`) et les deux conteneurs partager un réseau Docker,
-  plutôt que de passer par `127.0.0.1`.
-- **Traefik** : remplace la publication de port par des étiquettes de routage.
-
-Dis-moi lequel tu utilises et j'adapte.
+Un Watchtower sans `--scope` mettrait à jour tous tes conteneurs.
 
 ## Installation
 
@@ -126,17 +123,38 @@ curl -I http://127.0.0.1:8080/beatapp/
 sudo mkdir -p /etc/nginx/snippets
 sudo curl -o /etc/nginx/snippets/beatapp.conf \
   https://raw.githubusercontent.com/shankubo/beatapp/main/deploy/rpi/nginx-beatapp.conf
+
+# Sauvegarde avant modification
+sudo cp /etc/nginx/sites-available/francotamouls \
+        /etc/nginx/sites-available/francotamouls.avant-beatapp
 ```
 
-Puis, dans le bloc `server` de **app.francotamouls.com** (celui qui porte déjà
-le certificat TLS) :
+Édite ensuite `/etc/nginx/sites-available/francotamouls`, bloc **HTTPS** de
+`app.francotamouls.com` (vers la ligne 120). Il se termine actuellement par :
 
 ```nginx
-include /etc/nginx/snippets/beatapp.conf;
+    return 301 https://app.saisietemps.fr$request_uri;
+}
+```
+
+Remplace cette ligne par :
+
+```nginx
+    include /etc/nginx/snippets/beatapp.conf;
+
+    # Déplacé dans un location : un `return` au niveau du server s'applique
+    # avant tout location, et /beatapp/ serait redirigé comme le reste.
+    location / {
+        return 301 https://app.saisietemps.fr$request_uri;
+    }
+}
 ```
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
+curl -I https://app.francotamouls.com/beatapp/
+# Vérifier que la redirection existante fonctionne toujours :
+curl -I https://app.francotamouls.com/
 ```
 
 C'est tout. Chaque push sur `main` sera servi automatiquement dans la minute.
