@@ -142,6 +142,7 @@ git push origin !BRANCHE! || (
   goto :erreur
 )
 for /f "delims=" %%C in ('git rev-parse --short HEAD') do set "SHA=%%C"
+for /f "delims=" %%C in ('git rev-parse HEAD') do set "SHALONG=%%C"
 echo       pousse : !SHA!
 echo.
 
@@ -150,13 +151,34 @@ echo Construction de l'image sur GitHub Actions...
 echo   (typecheck, lint, tests, puis image multi-arch vers ghcr.io)
 echo.
 
-rem Laisse le temps au workflow d'apparaitre avant de l'interroger.
-timeout /t 10 /nobreak >nul
+rem Le workflow n'apparait pas instantanement apres le push.
+call :pause_court 10
 
-gh run watch --exit-status --compact >nul 2>&1
+rem On cible le run de CE commit, par son SHA.
+rem
+rem Piege mesure: `gh run watch` sans argument prend le run le plus recent
+rem *toutes branches confondues*, qui peut etre celui d'un push anterieur deja
+rem termine — le script concluait alors a un echec alors que la construction
+rem en cours se portait bien. Le SHA leve toute ambiguite.
+set "RUNID="
+for /l %%A in (1,1,12) do (
+  if not defined RUNID (
+    for /f "delims=" %%R in ('gh run list --commit !SHALONG! --limit 1 --json databaseId --jq ".[0].databaseId" 2^>nul') do set "RUNID=%%R"
+    if not defined RUNID call :pause_court 5
+  )
+)
+
+if not defined RUNID (
+  echo [ATTENTION] Aucun workflow trouve pour !SHA! apres une minute.
+  echo             Le push est fait; suivre la construction a la main :
+  echo             gh run list
+  goto :erreur
+)
+
+gh run watch !RUNID! --exit-status --compact >nul 2>&1
 if errorlevel 1 (
   echo [ECHEC] La construction a echoue sur GitHub Actions.
-  echo         Detail : gh run view --log-failed
+  echo         Detail : gh run view !RUNID! --log-failed
   goto :erreur
 )
 echo       image publiee sur ghcr.io
@@ -180,7 +202,7 @@ for /l %%I in (1,1,%SONDAGES%) do (
     echo !MIME! | findstr /i /c:"%TYPE_ATTENDU%" >nul 2>&1
     if not errorlevel 1 set "ENLIGNE=1"
 
-    if not defined ENLIGNE timeout /t %DELAI% /nobreak >nul
+    if not defined ENLIGNE call :pause_court %DELAI%
   )
 )
 
@@ -224,6 +246,28 @@ echo      ssh shan@192.168.1.87 "cd /srv/beatapp ^&^& docker compose pull ^&^& d
 echo.
 echo Voir deploy/rpi/README.md pour le diagnostic complet.
 goto :erreur
+
+rem --- Pause de N secondes ----------------------------------------------------
+rem
+rem Deux precautions, chacune pour une panne observee:
+rem
+rem  - chemin ABSOLU vers timeout.exe. Lance depuis un shell qui a Git pour
+rem    Windows en tete du PATH, `timeout` resolvait vers l'outil POSIX de
+rem    coreutils, qui attend une duree en premier argument et rejette « /t »
+rem    (« timeout: invalid time interval '/t' »);
+rem  - repli sur `ping`. timeout.exe refuse de s'executer quand l'entree
+rem    standard est redirigee (« ERROR: Input redirection is not supported »),
+rem    ce qui arrive des que le script tourne dans un pipeline ou une tache
+rem    planifiee. `ping -n` compte les secondes sans toucher a stdin.
+:pause_court
+set "N=%~1"
+if not defined N set "N=5"
+"%SystemRoot%\System32\timeout.exe" /t %N% /nobreak >nul 2>&1
+if errorlevel 1 (
+  set /a "PINGS=%N%+1"
+  ping -n !PINGS! 127.0.0.1 >nul 2>&1
+)
+exit /b 0
 
 :annule
 echo.
