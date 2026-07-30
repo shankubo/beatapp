@@ -5,14 +5,18 @@
  * pour trois boutons. L'apercu 9:16 etant contraint par la HAUTEUR, c'etait
  * l'axe le plus cher a payer.
  *
- * Comportement Instagram: les commandes s'effacent apres deux secondes de
- * lecture et reviennent au moindre contact. En pause elles restent — on est
- * alors en train de chercher un bouton, pas de regarder.
+ * Comportement Instagram: les BOUTONS s'effacent apres deux secondes de lecture
+ * et reviennent au moindre contact. En pause ils restent — on est alors en
+ * train de chercher un bouton, pas de regarder.
  *
- * Boutons translucides sur voile sombre, jamais transparents nus: sur une image
- * claire, une icone ink-100 sans fond tombe sous le seuil de contraste de
- * 4,5:1 que le projet s'impose. Le voile local est ce qui rend le « transparent »
- * compatible avec la lisibilite.
+ * Le compteur de temps, lui, ne s'efface jamais: c'est pendant la lecture qu'on
+ * veut savoir ou l'on en est. Les deux groupes portent donc leur propre
+ * transition, plutot qu'un fondu pose sur le conteneur commun.
+ *
+ * Icones NUES, detourees par une ombre portee. Les pastilles sombres posees au
+ * depart garantissaient le contraste mais decoupaient l'apercu en vignettes;
+ * `drop-shadow` detoure le glyphe sur n'importe quel fond, y compris un ciel
+ * blanc, sans ajouter de surface opaque.
  */
 
 import { useEffect, useState } from 'react';
@@ -106,11 +110,7 @@ export function PreviewControls() {
     <div
       // Capte le contact pour reveler, sans bloquer les gestes de l'apercu.
       onPointerDown={reveal}
-      className={[
-        'pointer-events-none absolute inset-0 z-20 flex flex-col justify-end',
-        'transition-opacity duration-300',
-        visible ? 'opacity-100' : 'opacity-0',
-      ].join(' ')}
+      className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end"
     >
       {/*
         TOUT en bas, sur deux rangees.
@@ -124,32 +124,60 @@ export function PreviewControls() {
 
         Le bas est libre, et c'est de toute facon la zone du pouce.
       */}
-      <div className="pointer-events-auto flex items-center justify-between gap-2 p-2 pr-14">
-        <div className="flex gap-1">
-          <GlassButton
-            label={t('common:action.undo')}
-            onClick={() => history.getState().undo()}
-            disabled={historyState.pastStates.length === 0}
-          >
-            <UndoIcon />
-          </GlassButton>
-          <GlassButton
-            label={t('common:action.redo')}
-            onClick={() => history.getState().redo()}
-            disabled={historyState.futureStates.length === 0}
-          >
-            <RedoIcon />
-          </GlassButton>
-        </div>
+      <div
+        className={[
+          'pointer-events-auto flex items-center gap-1 p-2',
+          'transition-opacity duration-300',
+          visible ? 'opacity-100' : 'opacity-0',
+        ].join(' ')}
+      >
+        <GlassButton
+          label={t('common:action.undo')}
+          onClick={() => history.getState().undo()}
+          disabled={historyState.pastStates.length === 0}
+        >
+          <UndoIcon />
+        </GlassButton>
+        <GlassButton
+          label={t('common:action.redo')}
+          onClick={() => history.getState().redo()}
+          disabled={historyState.futureStates.length === 0}
+        >
+          <RedoIcon />
+        </GlassButton>
+      </div>
 
+      {/*
+        Compteur CENTRE, juste au-dessus des boutons de lecture.
+
+        Il etait auparavant colle a droite, ou il se retrouvait isole du groupe
+        qu'il decrit — et masque par le rail d'outils. Au centre, il se lit dans
+        le meme mouvement du regard que la lecture.
+
+        Il ne s'efface PAS avec les boutons: c'est justement pendant la lecture
+        qu'on veut savoir ou l'on en est. Les boutons, eux, se retirent parce
+        qu'ils masquent l'image sans rien apprendre.
+      */}
+      <div className="pointer-events-none flex justify-center pb-0.5">
         <Timecode duration={duration} locale={i18n.language} />
       </div>
 
       {/*
-        Lecture centree, decalee a gauche du rail d'outils: `pr-14` reserve les
-        52 px du rail, sans quoi le bouton suivant passerait dessous.
+        Lecture centree sur l'ECRAN, pas sur l'espace restant.
+
+        Piege mesure: un `pr-14` reservait la largeur du rail d'outils, ce qui
+        decalait tout le groupe vers la gauche — visible a l'oeil des qu'on
+        cherchait le bouton sous le pouce. Le rail est en surimpression a droite
+        et ne recouvre AUCUN de ces trois boutons a 393 px: rien n'a donc a lui
+        etre reserve, et le centrage redevient celui de l'ecran.
       */}
-      <div className="pointer-events-auto flex items-center justify-center gap-2 p-2 pr-14">
+      <div
+        className={[
+          'pointer-events-auto flex items-center justify-center gap-2 p-2',
+          'transition-opacity duration-300',
+          visible ? 'opacity-100' : 'opacity-0',
+        ].join(' ')}
+      >
         <GlassButton
           label={t('editor:transport.previousClip')}
           onClick={() => jumpToClipBoundary(-1)}
