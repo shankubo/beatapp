@@ -13,23 +13,37 @@ rem  Le script s'arrete a la PREMIERE erreur. Publier une version qui ne
 rem  compile pas, ou dont une traduction manque, serait pire que ne rien
 rem  publier: le conteneur servirait un ecran blanc a tout le monde.
 rem
-rem  PIEGE CENTRAL, mesure le 30/07/2026 --------------------------------------
-rem  Verifier un deploiement par le code HTTP ne prouve RIEN. nginx sert la
-rem  PWA avec un repli `try_files ... /index.html`, donc une URL d'asset qui
-rem  n'existe pas renvoie quand meme 200, avec le contenu de l'index. Un
-rem  fichier .webp absent repondait « 200 OK » de facon parfaitement credible.
-rem  Le script teste donc le TYPE MIME (image/webp contre text/html), seul
-rem  signal qui distingue un asset reellement present.
+rem  DEUX PIEGES MESURES le 30/07/2026, tous deux corriges ici ----------------
+rem
+rem  1. Le code HTTP ne prouve RIEN. nginx sert la PWA avec un repli
+rem     `try_files ... /index.html`, donc une URL d'asset absente renvoie quand
+rem     meme 200, avec le contenu de l'index. Le script teste donc le TYPE MIME,
+rem     seul signal qui distingue un fichier reellement present d'un repli.
+rem
+rem  2. La sentinelle doit CHANGER a chaque build. Un fichier fixe existait
+rem     a l'identique dans l'ancienne image et repondait donc correctement
+rem     avant meme toute mise a jour: le script annoncait « EN LIGNE » sur un
+rem     conteneur perime. On vise le bundle `index-<hash>.js`, dont Vite
+rem     derive le nom du contenu.
 rem ============================================================================
 
 cd /d "%~dp0"
 
 set "REPO=shankubo/beatapp"
 set "SITE=https://app.francotamouls.com/beatapp"
-rem Sentinelle: un fichier qui n'existe QUE dans la nouvelle version. S'il
-rem revient en image/webp, le conteneur a bien ete remplace.
-set "SENTINELLE=%SITE%/steps/promo-720.webp"
-set "TYPE_ATTENDU=image/webp"
+
+rem Sentinelle: le bundle principal du build qu'on vient de produire.
+rem
+rem PIEGE MESURE le 30/07/2026 --------------------------------------------
+rem La sentinelle etait auparavant un fichier FIXE (steps/promo-720.webp).
+rem Il existait a l'identique dans l'ancienne image, donc il repondait
+rem « image/webp » avant meme que Watchtower ne tire quoi que ce soit: le
+rem script annoncait « EN LIGNE » sur un conteneur perime. Une sentinelle
+rem doit changer a CHAQUE build — le nom hache d'`index-*.js` le garantit,
+rem puisque Vite le derive du contenu.
+rem Il est lu plus bas, apres le build, dans `dist/index.html`.
+set "SENTINELLE="
+set "TYPE_ATTENDU=javascript"
 
 rem Attente du deploiement: Watchtower interroge le registre toutes les 60 s,
 rem et la construction multi-arch (amd64 + arm64) prend ~3 min sur le runner.
@@ -122,6 +136,19 @@ echo       ok
 echo [7/7] Build de production...
 call npm run build >nul 2>&1 || (echo [ECHEC] build. Detail : npm run build & goto :erreur)
 echo       ok
+
+rem Nom hache du bundle principal, lu dans le build qu'on vient de produire.
+rem Vite le derive du CONTENU: il change des qu'une ligne de code change, ce qui
+rem en fait une sentinelle valable pour ce deploiement precis.
+for /f "delims=" %%A in ('powershell -NoProfile -Command "(Select-String -Path dist/index.html -Pattern 'assets/index-[A-Za-z0-9_-]+\.js' -AllMatches).Matches[0].Value"') do set "BUNDLE=%%A"
+
+if not defined BUNDLE (
+  echo [ECHEC] Bundle introuvable dans dist/index.html.
+  echo         Sans sentinelle, la mise en ligne ne peut pas etre verifiee.
+  goto :erreur
+)
+set "SENTINELLE=%SITE%/!BUNDLE!"
+echo       sentinelle : !BUNDLE!
 echo.
 
 rem --- 6. Commit et push ------------------------------------------------------
@@ -222,9 +249,10 @@ echo ===============================================================
 echo   IMAGE PUBLIEE, MAIS LE SITE SERT ENCORE L'ANCIENNE VERSION
 echo ===============================================================
 echo.
-echo La sentinelle repond « text/html » au lieu de « %TYPE_ATTENDU% » :
-echo nginx retombe sur index.html, donc le fichier n'existe pas encore
-echo dans le conteneur. Watchtower n'a pas tire la nouvelle image.
+echo Le bundle !BUNDLE! repond « text/html » au lieu de
+echo « %TYPE_ATTENDU% » : nginx retombe sur index.html, donc ce fichier
+echo n'existe pas dans le conteneur. Watchtower n'a pas tire la nouvelle
+echo image, et le site sert toujours la precedente.
 echo.
 echo Cause la plus frequente : le paquet ghcr.io est PRIVE. Watchtower
 echo ne peut pas s'authentifier, echoue en boucle sans bruit, et le
