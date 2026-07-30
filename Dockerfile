@@ -27,10 +27,14 @@ COPY . .
 ARG BASE_PATH=/beatapp/
 ENV BASE_PATH=$BASE_PATH
 
-# `vite build` seul: les portes du projet (typecheck, lint, tests) tournent en
-# amont dans le workflow. Les rejouer ici doublerait le temps de build sans rien
-# verifier de plus.
-RUN npm run build
+# `build:noversion` et non `build`: ce dernier incremente la version dans
+# package.json. Fait ICI, l'increment vivrait dans l'image sans jamais revenir
+# au depot — la version affichee par l'application ne correspondrait donc a
+# aucun commit. Le numero est deja pose par le poste qui publie.
+#
+# Les portes du projet (typecheck, lint, tests) tournent en amont dans le
+# workflow: les rejouer ici doublerait le temps de build sans rien verifier.
+RUN npm run build:noversion
 
 # --- Etape 2: service ---
 FROM nginx:1.27-alpine

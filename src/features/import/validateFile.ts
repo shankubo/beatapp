@@ -87,21 +87,27 @@ const SIGNATURES: readonly Signature[] = [
   { kind: 'image', mimeType: 'image/avif', match: (b) => ascii(b, 4, 'ftyp') && ascii(b, 8, 'avif') },
 
   // --- Videos
-  // MP4 et QuickTime partagent la boite `ftyp`; on les distingue par la marque.
+  { kind: 'video', mimeType: 'video/quicktime', match: (b) => ascii(b, 4, 'ftyp') && ascii(b, 8, 'qt  ') },
+  /*
+    Tout autre conteneur ISO-BMFF est traite comme une video.
+
+    Bug mesure: la liste enumerait les marques connues (`isom`, `mp42`, `avc1`…)
+    et rejetait tout le reste. Un MP4 filme par un telephone Android porte
+    souvent `3gp5`, absent de la liste — « Ce format de fichier n'est pas pris
+    en charge » sur un fichier parfaitement valide.
+
+    Enumerer etait perdu d'avance: le registre des marques ISO en compte des
+    dizaines, et chaque fabricant peut en poser une. On accepte donc la FAMILLE
+    (boite `ftyp`), apres avoir teste les marques specifiques — audio et image —
+    qui, elles, doivent primer. Les sorties audio-seules restent rattrapees plus
+    bas par `isAudioOnlyContainer`, et un fichier reellement illisible echouera
+    au sondage mediabunny qui suit.
+  */
   {
     kind: 'video',
     mimeType: 'video/mp4',
-    match: (b) =>
-      ascii(b, 4, 'ftyp') &&
-      (ascii(b, 8, 'isom') ||
-        ascii(b, 8, 'iso2') ||
-        ascii(b, 8, 'mp41') ||
-        ascii(b, 8, 'mp42') ||
-        ascii(b, 8, 'avc1') ||
-        ascii(b, 8, 'M4V ') ||
-        ascii(b, 8, 'dash')),
+    match: (b) => ascii(b, 4, 'ftyp'),
   },
-  { kind: 'video', mimeType: 'video/quicktime', match: (b) => ascii(b, 4, 'ftyp') && ascii(b, 8, 'qt  ') },
   // WebM et MKV partagent l'entete EBML.
   {
     kind: 'video',
