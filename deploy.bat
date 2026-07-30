@@ -242,7 +242,10 @@ echo      sudo mkdir -p /root/.docker ^&^& sudo cp ~/.docker/config.json /root/.
 echo      docker restart beatapp-watchtower
 echo.
 echo   Forcer la mise a jour sans attendre :
-echo      ssh shan@192.168.1.87 "cd /srv/beatapp ^&^& docker compose pull ^&^& docker compose up -d"
+rem Les `^&` ne doivent PAS etre echappes ici: a l'interieur des guillemets,
+rem cmd.exe ne les interprete plus comme des separateurs de commande, et le
+rem caret s'affichait tel quel dans le message (« pull ^&^& docker »).
+echo      ssh shan@192.168.1.87 "cd /srv/beatapp && docker compose pull && docker compose up -d"
 echo.
 echo Voir deploy/rpi/README.md pour le diagnostic complet.
 goto :erreur
