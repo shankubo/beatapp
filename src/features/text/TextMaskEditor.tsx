@@ -15,7 +15,8 @@ import { Segmented } from '../../components/ui/Segmented';
 import { Slider } from '../../components/ui/Slider';
 import { PlusIcon, TrashIcon } from '../../components/ui/icons';
 import { FONT_CHOICES, FONT_STACKS, type FontChoice } from '../../domain/types';
-import { formatPercent } from '../../lib/format';
+import { formatDuration, formatPercent } from '../../lib/format';
+import { GlyphPicker } from './GlyphPicker';
 
 export function TextMaskEditor() {
   const { t, i18n } = useTranslation(['editor', 'common']);
@@ -25,15 +26,28 @@ export function TextMaskEditor() {
   const updateTextMask = useProjectStore((state) => state.updateTextMask);
   const removeTextMask = useProjectStore((state) => state.removeTextMask);
   const currentTime = usePlaybackStore((state) => state.time);
+  const setTime = usePlaybackStore((state) => state.setTime);
 
   /*
-    On edite le PREMIER masque, sans selecteur.
+    Masque edite: celui que la TETE DE LECTURE traverse, sinon le premier.
 
-    Un masque couvre toute la frame: en empiler plusieurs au meme instant ne
-    produit rien d'utile, le dernier recouvrant les precedents. La liste existe
-    pour qu'ils se succedent dans le temps, pas pour qu'on en superpose.
+    Bug corrige: le panneau editait toujours `masks[0]`, en expliquant que la
+    liste servait a les faire se succeder dans le temps. Elle ne le pouvait
+    pas — rien ne permettait d'atteindre un deuxieme masque, ni meme d'en
+    creer un: le bouton « ajouter » disparaissait des qu'un masque existait.
+
+    Un masque couvre toute la frame, donc en superposer deux au meme instant
+    reste inutile; c'est bien leur SUCCESSION qui a du sens, et elle est
+    desormais reellement possible.
   */
-  const mask = masks?.[0];
+  const list = masks ?? [];
+  const activeIndex = Math.max(
+    0,
+    list.findIndex(
+      (entry) => currentTime >= entry.start && currentTime < entry.start + entry.duration,
+    ),
+  );
+  const mask = list[activeIndex];
 
   if (!mask) {
     return (
@@ -60,15 +74,72 @@ export function TextMaskEditor() {
         <h3 className="text-xs font-medium uppercase tracking-wide text-ink-400">
           {t('editor:mask.title')}
         </h3>
-        <button
-          type="button"
-          onClick={() => removeTextMask(mask.id)}
-          aria-label={t('editor:mask.remove')}
-          className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 active:bg-ink-800 [&>svg]:size-4"
-        >
-          <TrashIcon />
-        </button>
+        <div className="flex items-center gap-1">
+          {/*
+            Ajouter un masque reste possible meme quand il en existe deja: le
+            bouton disparaissait, ce qui rendait le deuxieme masque
+            inatteignable. Le nouveau demarre a la tete de lecture, la ou on
+            regarde.
+          */}
+          <button
+            type="button"
+            onClick={() => addTextMask('A', { start: currentTime })}
+            aria-label={t('editor:mask.add')}
+            className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-300 active:bg-ink-800 [&>svg]:size-4"
+          >
+            <PlusIcon />
+          </button>
+          <button
+            type="button"
+            onClick={() => removeTextMask(mask.id)}
+            aria-label={t('editor:mask.remove')}
+            className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 active:bg-ink-800 [&>svg]:size-4"
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </div>
+
+      {/*
+        Selecteur, affiche seulement a partir de DEUX masques.
+
+        A un seul, il n'apporterait qu'une ligne de decor. Chaque entree porte
+        son contenu et son instant: c'est ce qui permet de reconnaitre celui
+        qu'on cherche sans le selectionner d'abord.
+      */}
+      {list.length > 1 && (
+        <div
+          role="radiogroup"
+          aria-label={t('editor:mask.title')}
+          className="scrollbar-none -mx-1 flex gap-1 overflow-x-auto px-1"
+        >
+          {list.map((entry, index) => {
+            const active = index === activeIndex;
+            return (
+              <button
+                key={entry.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                // Se placer sur le masque le selectionne: la tete de lecture
+                // est deja ce qui decide lequel est edite.
+                onClick={() => setTime(entry.start)}
+                className={[
+                  'flex min-h-11 shrink-0 items-center gap-2 rounded-lg border px-2.5 text-xs font-medium transition-colors',
+                  active
+                    ? 'border-media-400/60 bg-media-400/15 text-media-400'
+                    : 'surface border-ink-600 bg-ink-850 text-ink-300 active:bg-ink-800',
+                ].join(' ')}
+              >
+                <span className="max-w-[4rem] truncate text-sm">{entry.text}</span>
+                <span className="tnum text-[10px] opacity-70">
+                  {formatDuration(entry.start, i18n.language)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <label className="block">
         <span className="mb-1.5 block text-xs font-medium text-ink-400">
@@ -84,6 +155,16 @@ export function TextMaskEditor() {
             laisser l'utilisateur saisir une phrase qui ne rendra rien. */}
         <span className="mt-1 block text-xs text-ink-400">{t('editor:mask.contentHint')}</span>
       </label>
+
+      {/*
+        Bibliotheque de formes: elle REMPLACE le contenu au lieu de s'y ajouter.
+
+        Un masque tient en une ou deux formes — au-dela les lettres deviennent
+        trop etroites pour laisser voir l'image. Concatener produirait donc
+        surtout des masques illisibles; remplacer donne un aperçu immediat de
+        chaque forme, ce qui est l'usage reel: on essaie, on compare.
+      */}
+      <GlyphPicker onPick={(glyph) => updateTextMask(mask.id, { text: glyph })} />
 
       {/* `Segmented` ne prend que des chaines ou des nombres: le booleen du
           modele est traduit ici plutot que d'elargir le composant partage. */}

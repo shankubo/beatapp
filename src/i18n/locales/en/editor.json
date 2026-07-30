@@ -311,6 +311,15 @@
     "hint": "The edit shows through the letters; everything else is covered.",
     "add": "Add a mask",
     "remove": "Remove the mask",
+    "library": "Shape library",
+    "groups": {
+      "letters": "Letters",
+      "numbers": "Numbers",
+      "shapes": "Shapes",
+      "arrows": "Arrows",
+      "symbols": "Symbols",
+      "emoji": "Emoji"
+    },
     "content": "Letters",
     "contentHint": "One or two letters give the best result.",
     "mode": "Direction",

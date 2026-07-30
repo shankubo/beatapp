@@ -311,6 +311,15 @@
     "hint": "Le montage s'affiche à l'intérieur des lettres, le reste est couvert.",
     "add": "Ajouter un masque",
     "remove": "Supprimer le masque",
+    "library": "Bibliothèque de formes",
+    "groups": {
+      "letters": "Lettres",
+      "numbers": "Chiffres",
+      "shapes": "Formes",
+      "arrows": "Flèches",
+      "symbols": "Symboles",
+      "emoji": "Emoji"
+    },
     "content": "Lettres",
     "contentHint": "Une ou deux lettres donnent le meilleur résultat.",
     "mode": "Sens",
