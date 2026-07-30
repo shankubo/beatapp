@@ -13,7 +13,31 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { extractAudioFromVideo } from '@/features/audio/extractAudio';
+import {
+  encodeAudioBuffer,
+  extractAudioFromVideo,
+  pickAudioExportFormat,
+} from '@/features/audio/extractAudio';
+
+/**
+ * Le navigateur sait-il encoder de l'AAC ?
+ *
+ * Mesure: le Chromium de l'integration continue REFUSE `mp4a.40.2` — les builds
+ * open source n'embarquent pas les codecs proprietaires, contrairement au
+ * Chrome installe sur un poste. Les tests qui en dependent sont donc sautes
+ * plutot que de faire echouer la CI pour une capacite absente.
+ */
+async function aacAvailable(): Promise<boolean> {
+  if (typeof AudioEncoder === 'undefined') return false;
+  try {
+    const s = await AudioEncoder.isConfigSupported({
+      codec: 'mp4a.40.2', sampleRate: 48_000, numberOfChannels: 1, bitrate: 192_000,
+    });
+    return s.supported === true;
+  } catch {
+    return false;
+  }
+}
 
 /** Fabrique un MP4 audio-seul avec l'encodeur du navigateur. */
 async function makeAacFile(): Promise<File> {
@@ -45,7 +69,11 @@ async function samples(blob: Blob): Promise<Float32Array> {
 }
 
 describe('extractAudioFromVideo', () => {
-  it('recopie la piste AAC sans la reencoder', async () => {
+  it('recopie la piste AAC sans la reencoder', async ({ skip }) => {
+    // Sans encodeur AAC, impossible de FABRIQUER la fixture: le test n'a plus
+    // d'objet. La recopie elle-meme ne depend d'aucun encodeur.
+    skip(!(await aacAvailable()), 'AAC non encodable par ce navigateur');
+
     const file = await makeAacFile();
     const extracted = await extractAudioFromVideo(file);
 
@@ -69,7 +97,6 @@ describe('extractAudioFromVideo', () => {
 describe('renderTrack + encodeAudioBuffer', () => {
   it('exporte une piste decoupee en fichier M4A lisible', async () => {
     const { renderTrack } = await import('@/export/audioMix');
-    const { encodeAudioBuffer } = await import('@/features/audio/extractAudio');
 
     const ctx = new OfflineAudioContext(1, 48000 * 3, 48000);
     const osc = ctx.createOscillator();
@@ -93,13 +120,39 @@ describe('renderTrack + encodeAudioBuffer', () => {
     // Les deux morceaux mis bout a bout: 2 s, et non les 3 s de la source.
     expect(rendered!.duration).toBeCloseTo(2, 1);
 
-    const blob = await encodeAudioBuffer(rendered!);
-    expect(blob.type).toBe('audio/mp4');
+    // Le format suit ce que le navigateur sait faire: AAC/MP4 quand il le peut,
+    // Opus/WebM sinon. Figer 'audio/mp4' ici cassait la CI.
+    const format = await pickAudioExportFormat();
+
+    const blob = await encodeAudioBuffer(rendered!, format);
+    expect(blob.type).toBe(format.mimeType);
     expect(blob.size).toBeGreaterThan(1000);
 
     // Le fichier produit doit etre relisible par le navigateur.
     const check = new OfflineAudioContext(1, 48000, 48000);
     const decoded = await check.decodeAudioData(await blob.arrayBuffer());
     expect(decoded.duration).toBeGreaterThan(1.5);
+  }, 30_000);
+});
+
+describe('repli Opus', () => {
+  it('encode en WebM/Opus quand l’AAC est refuse', async () => {
+    const ctx = new OfflineAudioContext(1, 48000, 48000);
+    const osc = ctx.createOscillator();
+    osc.connect(ctx.destination);
+    osc.start();
+    const buf = await ctx.startRendering();
+
+    // Force le repli, sans dependre de la capacite reelle du navigateur.
+    const blob = await encodeAudioBuffer(buf, {
+      codec: 'opus', mimeType: 'audio/webm', extension: 'webm',
+    });
+    expect(blob.type).toBe('audio/webm');
+    expect(blob.size).toBeGreaterThan(500);
+
+    // Relisible par le navigateur.
+    const check = new OfflineAudioContext(1, 48000, 48000);
+    const decoded = await check.decodeAudioData(await blob.arrayBuffer());
+    expect(decoded.duration).toBeGreaterThan(0.5);
   }, 30_000);
 });

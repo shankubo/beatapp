@@ -17,7 +17,12 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AudioEditor } from './AudioEditor';
-import { extractAudioFromVideo, audioNameFor, encodeAudioBuffer } from './extractAudio';
+import {
+  extractAudioFromVideo,
+  audioNameFor,
+  encodeAudioBuffer,
+  pickAudioExportFormat,
+} from './extractAudio';
 import { renderTrack } from '../../export/audioMix';
 import { acceptAttribute } from '../import/validateFile';
 import { ImportError, importFile } from '../import/importMedia';
@@ -133,7 +138,10 @@ export function AudioStudio({ onClose }: { onClose: () => void }) {
         return;
       }
 
-      const blob = await encodeAudioBuffer(rendered);
+      // Le format est choisi AVANT, pour que le nom du fichier porte la bonne
+      // extension: un .m4a contenant du WebM ne s'ouvrirait nulle part.
+      const format = await pickAudioExportFormat();
+      const blob = await encodeAudioBuffer(rendered, format);
 
       /*
         Telechargement par ancre + `createObjectURL`.
@@ -145,7 +153,7 @@ export function AudioStudio({ onClose }: { onClose: () => void }) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = audioNameFor(asset);
+      link.download = audioNameFor(asset, format.extension);
       link.click();
       URL.revokeObjectURL(url);
     } catch {

@@ -17,16 +17,57 @@
  * la transcription, voir CLAUDE.md) ou un service distant, qui contredirait la
  * promesse « rien ne quitte votre appareil ».
  *
- * On exporte donc en **M4A/AAC**: lu partout — iOS, Android, Windows, macOS,
- * WhatsApp, Instagram — et reellement produisible par le navigateur.
+ * On exporte donc en **M4A/AAC** quand le navigateur sait l'encoder, et en
+ * **WebM/Opus** sinon. Deuxieme mesure, sur le Chromium de l'integration
+ * continue: `mp4a.40.2` y est REFUSE — les builds open source de Chromium
+ * n'embarquent pas les codecs proprietaires, contrairement au Chrome installe.
+ * Figer l'AAC aurait donc casse l'export chez une partie des utilisateurs, en
+ * silence. Opus est disponible partout et sert de repli.
  */
 
 import { ImportError } from '../import/importMedia';
 import type { MediaAsset } from '../../domain/types';
 
-/** Format du fichier produit par l'export d'une piste. */
-export const AUDIO_EXPORT_MIME = 'audio/mp4';
-export const AUDIO_EXPORT_EXTENSION = 'm4a';
+/** Format retenu pour l'ecriture d'un fichier audio. */
+export interface AudioExportFormat {
+  codec: 'aac' | 'opus';
+  mimeType: string;
+  extension: string;
+}
+
+const AAC_FORMAT: AudioExportFormat = {
+  codec: 'aac',
+  mimeType: 'audio/mp4',
+  extension: 'm4a',
+};
+
+const OPUS_FORMAT: AudioExportFormat = {
+  codec: 'opus',
+  mimeType: 'audio/webm',
+  extension: 'webm',
+};
+
+/**
+ * Choisit le meilleur format que CE navigateur sait reellement encoder.
+ *
+ * Sonde a l'execution et non deduit d'une liste de navigateurs: la meme version
+ * de Chromium accepte ou refuse l'AAC selon qu'elle a ete compilee avec les
+ * codecs proprietaires. Seul `isConfigSupported` dit la verite.
+ */
+export async function pickAudioExportFormat(): Promise<AudioExportFormat> {
+  if (typeof AudioEncoder === 'undefined') return OPUS_FORMAT;
+  try {
+    const support = await AudioEncoder.isConfigSupported({
+      codec: 'mp4a.40.2',
+      sampleRate: 48_000,
+      numberOfChannels: 2,
+      bitrate: AUDIO_BITRATE,
+    });
+    return support.supported === true ? AAC_FORMAT : OPUS_FORMAT;
+  } catch {
+    return OPUS_FORMAT;
+  }
+}
 
 /**
  * Debit de l'AAC, en bits par seconde.
@@ -99,7 +140,9 @@ export async function extractAudioFromVideo(file: File): Promise<Blob> {
   const buffer = output.target.buffer;
   if (!buffer) throw new ImportError('errors:import.decodeFailed');
 
-  return new Blob([buffer], { type: AUDIO_EXPORT_MIME });
+  // L'extraction ecrit toujours du MP4: elle RECOPIE un flux existant, sans
+  // encodeur, donc la capacite du navigateur n'entre pas en jeu.
+  return new Blob([buffer], { type: AAC_FORMAT.mimeType });
 }
 
 /**
@@ -114,11 +157,20 @@ export async function extractAudioFromVideo(file: File): Promise<Blob> {
  * n'est jamais reecrite — on peut donc reexporter autant de fois qu'on veut
  * sans jamais empiler les pertes.
  */
-export async function encodeAudioBuffer(buffer: AudioBuffer): Promise<Blob> {
-  const { AudioBufferSource, Output, BufferTarget, Mp4OutputFormat } = await import('mediabunny');
+export async function encodeAudioBuffer(
+  buffer: AudioBuffer,
+  format?: AudioExportFormat,
+): Promise<Blob> {
+  const { AudioBufferSource, Output, BufferTarget, Mp4OutputFormat, WebMOutputFormat } =
+    await import('mediabunny');
 
-  const source = new AudioBufferSource({ codec: 'aac', bitrate: AUDIO_BITRATE });
-  const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
+  const chosen = format ?? (await pickAudioExportFormat());
+
+  const source = new AudioBufferSource({ codec: chosen.codec, bitrate: AUDIO_BITRATE });
+  const output = new Output({
+    format: chosen.codec === 'aac' ? new Mp4OutputFormat() : new WebMOutputFormat(),
+    target: new BufferTarget(),
+  });
   output.addAudioTrack(source);
 
   await output.start();
@@ -131,7 +183,7 @@ export async function encodeAudioBuffer(buffer: AudioBuffer): Promise<Blob> {
   const result = output.target.buffer;
   if (!result) throw new ImportError('errors:import.decodeFailed');
 
-  return new Blob([result], { type: AUDIO_EXPORT_MIME });
+  return new Blob([result], { type: chosen.mimeType });
 }
 
 /**
@@ -141,7 +193,10 @@ export async function encodeAudioBuffer(buffer: AudioBuffer): Promise<Blob> {
  * a cote de « vacances.mp4 » est ce qu'on attend, la ou un nom genere serait a
  * renommer a la main.
  */
-export function audioNameFor(asset: MediaAsset | { name: string }): string {
+export function audioNameFor(
+  asset: MediaAsset | { name: string },
+  extension = AAC_FORMAT.extension,
+): string {
   const base = asset.name.replace(/\.[^.]+$/, '');
-  return `${base || 'audio'}.${AUDIO_EXPORT_EXTENSION}`;
+  return `${base || 'audio'}.${extension}`;
 }
