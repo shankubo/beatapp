@@ -10,6 +10,9 @@ tests/browser/__screenshots__/
 
 # Reglages locaux de l'outillage: propres a une machine, jamais partages.
 .claude/settings.local.json
+# Etat d'autorisation des outils, propre a chaque poste: il se remplit tout
+# seul au fil des sessions et n'a rien a faire dans le depot.
+.claude/settings.json
 
 # Fichiers d'environnement
 .env
