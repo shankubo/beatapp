@@ -61,15 +61,24 @@ est en tête de `nginx-beatapp.conf`.
 ## Tes autres conteneurs sont protégés
 
 Par défaut, Watchtower met à jour **tout** ce qu'il trouve — y compris
-`saisietemps`, `pwa-asso` et `portainer`. Trois garde-fous l'en empêchent dans
-ce compose : `--scope beatapp`, `--label-enable`, et les étiquettes portées par
-le seul service `beatapp`. **Ne les retire pas.**
+`saisietemps`, `pwa-asso` et `portainer`. Le garde-fou est `--scope beatapp`,
+appuyé par l'étiquette `com.centurylinklabs.watchtower.scope` que porte le seul
+service `beatapp`. **Ne le retire pas.**
 
-Aucun Watchtower ne tourne actuellement sur la machine, donc rien n'entre en
-conflit. Si tu en ajoutes un plus tard, vérifie qu'il porte un `--scope` :
+> Ne **pas** y ajouter `--label-enable` : mesuré, les deux filtres se cumulent
+> au lieu de se renforcer, et Watchtower rapportait `scanned=0` — des cycles
+> apparemment réussis, mais plus aucune mise à jour. Les journaux doivent dire
+> « Only checking containers in scope ».
+
+L'image utilisée est `nickfedor/watchtower` : l'originale `containrrr/watchtower`
+n'est plus maintenue depuis 2023 et parle l'API Docker 1.25, que le démon refuse
+depuis la version 25 (« client version 1.25 is too old », redémarrage en boucle).
+
+Aucun autre Watchtower ne tourne sur la machine, donc rien n'entre en conflit.
+Si tu en ajoutes un plus tard, vérifie qu'il porte un `--scope` :
 
 ```bash
-docker ps --filter ancestor=containrrr/watchtower --format '{{.Names}}'
+docker ps --filter name=watchtower --format '{{.Names}}'
 ```
 
 Un Watchtower sans `--scope` mettrait à jour tous tes conteneurs.

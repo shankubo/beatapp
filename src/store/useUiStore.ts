@@ -33,6 +33,8 @@ export type ToastKey =
   | ImportErrorKey
   | UrlImportErrorKey
   | 'editor:onboarding.needMedia'
+  | 'install:share.copied'
+  | 'install:share.copyFailed'
   | 'errors:audio.decodeFailed'
   | 'errors:audio.analysisFailed'
   | 'errors:audio.tooQuiet'
@@ -73,6 +75,8 @@ interface UiState {
   templatesOpen: boolean;
   /** Ecran « A propos » ouvert. */
   aboutOpen: boolean;
+  /** Ecran « Installer l'application » ouvert. */
+  installOpen: boolean;
   /**
    * Mode compact: les barres se superposent a l'apercu au lieu de le rogner.
    *
@@ -129,6 +133,7 @@ interface UiState {
   setExportOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setAboutOpen: (open: boolean) => void;
+  setInstallOpen: (open: boolean) => void;
   setTemplatesOpen: (open: boolean) => void;
   setCompactChrome: (compact: boolean) => void;
   setTimelineCollapsed: (collapsed: boolean) => void;
@@ -150,6 +155,7 @@ export const useUiStore = create<UiState>()((set) => ({
   settingsOpen: false,
   templatesOpen: false,
   aboutOpen: false,
+  installOpen: false,
   compactChrome: false,
   timelineCollapsed: false,
   appBarCollapsed: false,
@@ -191,6 +197,8 @@ export const useUiStore = create<UiState>()((set) => ({
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
 
   setAboutOpen: (aboutOpen) => set({ aboutOpen }),
+
+  setInstallOpen: (installOpen) => set({ installOpen }),
 
   // Ouvrir la galerie referme la feuille: une feuille active derriere un ecran
   // plein est un etat invisible mais vivant. Meme regle que le plein ecran.

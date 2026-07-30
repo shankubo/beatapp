@@ -29,6 +29,8 @@ interface StepCardProps {
   detail: string;
   state: StepState;
   tone: StepTone;
+  /** Base du nom de fichier de l'illustration, sans largeur ni extension. */
+  image: string;
   onClick: () => void;
 }
 
@@ -54,9 +56,13 @@ const TONE = {
   },
 } as const;
 
-export function StepCard({ number, label, detail, state, tone, onClick }: StepCardProps) {
+export function StepCard({ number, label, detail, state, tone, image, onClick }: StepCardProps) {
   const done = state === 'done';
   const palette = TONE[tone];
+  // Chemin prefixe par `import.meta.env.BASE_URL`, jamais ecrit en dur: sous un
+  // sous-chemin (https://app.francotamouls.com/beatapp/), une racine « /steps/… »
+  // viserait le domaine et l'image manquerait.
+  const base = `${import.meta.env.BASE_URL}steps/${image}`;
 
   return (
     <button
@@ -64,9 +70,9 @@ export function StepCard({ number, label, detail, state, tone, onClick }: StepCa
       onClick={onClick}
       disabled={state === 'busy' || state === 'disabled'}
       className={[
-        // `overflow-hidden` borne le degrade au rayon de la carte.
-        'surface relative flex min-h-36 w-full flex-col justify-between overflow-hidden',
-        'rounded-2xl border bg-ink-850 p-4 text-left transition-colors',
+        // `overflow-hidden` borne le degrade ET l'illustration au rayon de la carte.
+        'surface relative flex w-full flex-col overflow-hidden',
+        'rounded-2xl border bg-ink-850 text-left transition-colors',
         // 60 % et non 45: a 45 le libelle tombait a 4,1:1 — conforme, mais
         // visuellement eteint a cote des cartes actives. A 60 il reste
         // clairement lisible tout en se lisant comme indisponible.
@@ -74,6 +80,39 @@ export function StepCard({ number, label, detail, state, tone, onClick }: StepCa
         done ? 'border-ok-400/60' : palette.border,
       ].join(' ')}
     >
+      {/*
+        Illustration de l'etape: elle MONTRE l'operation la ou le libelle la
+        nomme. Ratio fixe et `object-cover` — les trois sources ont des cadrages
+        de formes differentes, et sans hauteur imposee les cartes ne
+        s'aligneraient pas.
+
+        `alt` vide et `aria-hidden`: purement decorative, l'etape etant deja
+        annoncee par son libelle. La decrire ferait lire deux fois la meme chose.
+      */}
+      {/*
+        Bande de 96 px et non un ratio: en `aspect-video`, les trois cartes
+        mesuraient ~530 px de haut a elles seules et la troisieme etape tombait
+        sous la ligne de flottaison — sur l'ecran meme qui promet « en 3 etapes ».
+      */}
+      <span aria-hidden="true" className="relative block h-24 w-full overflow-hidden">
+        <img
+          src={`${base}-720.webp`}
+          srcSet={`${base}-360.webp 360w, ${base}-720.webp 720w`}
+          // La carte occupe la largeur de l'ecran moins les marges de la page.
+          sizes="(min-width: 640px) 592px, calc(100vw - 32px)"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="size-full object-cover"
+        />
+        {/*
+          Fondu vers le fond de la carte sur le bas de l'image: sans lui, le
+          bord franc de l'illustration coupait la carte en deux blocs etrangers
+          l'un a l'autre.
+        */}
+        <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-850 via-transparent to-transparent" />
+      </span>
+
       {/* Voile teinte tres discret: donne une identite a la carte sans nuire a
           la lisibilite du texte pose dessus. */}
       <span
@@ -84,39 +123,44 @@ export function StepCard({ number, label, detail, state, tone, onClick }: StepCa
         ].join(' ')}
       />
 
-      <div className="relative flex items-start justify-between gap-3">
+      <div className="relative flex items-start gap-3 p-4">
+        {/*
+          Le numeral est decoratif: la carte est deja nommee par son libelle, et
+          l'ordre est porte par le DOM. L'annoncer donnerait « IMPORTER AUDIO, 2 ».
+
+          Pose a cote du texte et non plus au-dessus: l'illustration occupe
+          desormais le haut de la carte, ou il tenait sa taille d'affiche.
+        */}
         <span
+          aria-hidden="true"
           className={[
-            'text-xs font-semibold uppercase tracking-wide',
-            done ? 'text-ok-400' : palette.label,
+            'tnum shrink-0 text-4xl font-bold leading-none',
+            done ? 'text-ok-400/60' : palette.numeral,
           ].join(' ')}
         >
-          {label}
+          {number}
         </span>
+
+        <div className="min-w-0 flex-1">
+          <span
+            className={[
+              'block text-xs font-semibold uppercase tracking-wide',
+              done ? 'text-ok-400' : palette.label,
+            ].join(' ')}
+          >
+            {label}
+          </span>
+          {/* Hauteur reservee en permanence: sans cela, la carte sauterait au
+              passage en « occupe » ou en « fait ». */}
+          <span className="mt-1 block min-h-4 text-xs text-ink-300">{detail}</span>
+        </div>
+
         {done && (
           <span className="shrink-0 text-ok-400 [&>svg]:size-5">
             <CheckIcon />
           </span>
         )}
       </div>
-
-      {/*
-        Le numeral est decoratif: la carte est deja nommee par son libelle, et
-        l'ordre est porte par le DOM. L'annoncer donnerait « IMPORTER AUDIO, 2 ».
-      */}
-      <span
-        aria-hidden="true"
-        className={[
-          'tnum relative text-6xl font-bold leading-none',
-          done ? 'text-ok-400/60' : palette.numeral,
-        ].join(' ')}
-      >
-        {number}
-      </span>
-
-      {/* Hauteur reservee en permanence: sans cela, la carte sauterait au
-          passage en « occupe » ou en « fait ». */}
-      <span className="relative min-h-4 text-xs text-ink-300">{detail}</span>
     </button>
   );
 }

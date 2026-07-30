@@ -30,6 +30,7 @@ import {
   ChevronUpIcon,
   MusicIcon,
   PlusIcon,
+  ShareIcon,
   SparkIcon,
 } from '../../components/ui/icons';
 import { ReelImport } from '../import/ReelImport';
@@ -37,7 +38,7 @@ import { formatInteger } from '../../lib/format';
 import type { MediaKind } from '../../domain/types';
 
 export function OnboardingScreen({ onClose }: { onClose: () => void }) {
-  const { t, i18n } = useTranslation(['editor', 'common', 'errors', 'samples']);
+  const { t, i18n } = useTranslation(['editor', 'common', 'errors', 'samples', 'install']);
 
   const project = useProjectStore((state) => state.project);
   const addAssetToTimeline = useProjectStore((state) => state.addAssetToTimeline);
@@ -47,6 +48,7 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
 
   const pushToast = useUiStore((state) => state.pushToast);
   const setTemplatesOpen = useUiStore((state) => state.setTemplatesOpen);
+  const setInstallOpen = useUiStore((state) => state.setInstallOpen);
   const { register, audioContext, audioBuffers } = useMedia();
   const { applyGeneratedSample } = useGeneratedSample();
   const library = useLibrary();
@@ -69,6 +71,11 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
   const steps = deriveSteps(project, busy);
   const clipCount = project.videoTrack.clips.length;
   const beatMap = project.beatMap;
+  // `returnObjects` pour recuperer le tableau: chaque argument est une ligne
+  // distincte, et les concatener en une seule chaine empecherait de les puce.
+  const pitchLines = t('editor:onboarding.pitch.lines', {
+    returnObjects: true,
+  }) as readonly string[];
 
   // --- Etape 1: images et videos.
   const handleMedia = async (files: FileList | null) => {
@@ -202,6 +209,7 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
           }
           state={working && busy !== 'media' ? 'disabled' : steps.media}
           tone="media"
+          image="step1"
           onClick={() => mediaInput.current?.click()}
         />
 
@@ -215,6 +223,7 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
           }
           state={working && busy !== 'audio' ? 'disabled' : steps.audio}
           tone="audio"
+          image="step2"
           onClick={() => audioInput.current?.click()}
         />
 
@@ -274,6 +283,7 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
           }
           state={working && busy !== 'beat' ? 'disabled' : steps.beat}
           tone="beat"
+          image="step3"
           onClick={() => void handleBeat()}
         />
 
@@ -354,16 +364,76 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
-        {/* Logo promotionnel: transition en fondu depuis le fond sombre vers la
-            zone claire de l'image, evitant la coupure brutale blanc/noir. */}
-        <div className="-mx-4 h-6 bg-gradient-to-b from-ink-950 to-white" />
-        <div className="-mx-4 flex justify-center bg-white pb-4">
+        {/*
+          Bloc promotionnel.
+
+          Plus de cartouche blanc ni de fondu vers le blanc: l'ancien
+          `logo_text.png` etait une image CLAIRE, qu'il fallait poser sur du
+          blanc et raccorder par un degrade. `beatapp_by_shan.png` est sombre —
+          bords mesures a rgb(2,4,10), contre rgb(14,17,13) pour `ink-950` — donc
+          elle se fond d'elle-meme dans la page. Garder le cartouche blanc y
+          reintroduirait justement la coupure franche que le degrade corrigeait.
+        */}
+        <div className="space-y-3 pt-2">
+          {/*
+            Chemin prefixe par `import.meta.env.BASE_URL`, jamais ecrit en dur.
+
+            Piege mesure: `/icons/…` visait la RACINE du domaine, et l'image
+            manquait des que l'application etait servie sous un sous-chemin
+            (https://app.francotamouls.com/beatapp/). Vite reecrit les chemins de
+            `index.html`, mais pas ceux ecrits dans un composant.
+          */}
           <img
-            src="/icons/logo_text.png"
+            src={`${import.meta.env.BASE_URL}steps/promo-720.webp`}
+            srcSet={`${import.meta.env.BASE_URL}steps/promo-360.webp 360w, ${import.meta.env.BASE_URL}steps/promo-720.webp 720w`}
+            sizes="(min-width: 640px) 592px, calc(100vw - 32px)"
             alt=""
             aria-hidden="true"
-            className="w-full max-w-sm object-contain"
+            loading="lazy"
+            decoding="async"
+            // Ratio pose en dur: sans lui, la liste d'arguments sauterait vers
+            // le bas au chargement de l'image.
+            className="aspect-[800/533] w-full rounded-2xl"
           />
+
+          {/*
+            L'argumentaire est du TEXTE, pas des pixels: incruste dans le PNG il
+            resterait en anglais en fr et en ta, echapperait aux lecteurs
+            d'ecran et deviendrait illisible au zoom. Le titre est porte par
+            l'image, donc seul le texte courant est repris ici.
+          */}
+          {/* Puce en `ink-500`: le chartreuse est reserve au beat, et une liste
+              d'arguments n'en est pas un. */}
+          <ul className="space-y-1.5">
+            {pitchLines.map((line) => (
+              <li key={line} className="flex gap-2 text-xs leading-relaxed text-ink-300">
+                <span aria-hidden="true" className="text-ink-500">
+                  •
+                </span>
+                {line}
+              </li>
+            ))}
+          </ul>
+
+          {/*
+            Installer et partager, APRES l'argumentaire.
+
+            Cet ordre est le propos du bloc: on explique d'abord ce que
+            l'application fait, et on propose de l'emporter ou de la transmettre
+            seulement ensuite. Place avant, le QR code demanderait de partager
+            quelque chose que l'utilisateur n'a pas encore compris.
+          */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              setInstallOpen(true);
+            }}
+            className="surface flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-ink-600 bg-ink-850 text-sm font-medium text-ink-100 active:bg-ink-800 [&>svg]:size-4"
+          >
+            <ShareIcon />
+            {t('install:open')}
+          </button>
         </div>
       </div>
 

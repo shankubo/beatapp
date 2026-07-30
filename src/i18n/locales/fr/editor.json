@@ -35,7 +35,17 @@
       "hint": "Cale automatiquement le montage sur les temps.",
       "done": "{{bpm}} BPM — montage calé"
     },
-    "needMedia": "Importez d'abord des images ou des vidéos."
+    "needMedia": "Importez d'abord des images ou des vidéos.",
+    "pitch": {
+      "title": "BeatApp",
+      "lines": [
+        "Prenez la main sur vos reels et vos clips vidéo.",
+        "Simple, rapide, facile à prendre en main.",
+        "Tout est traité directement sur votre téléphone.",
+        "Exportez autant de vidéos MP4 sonorisées que vous voulez.",
+        "100 % gratuit — aucun abonnement, aucun achat intégré."
+      ]
+    }
   },
   "transport": {
     "play": "Lecture",

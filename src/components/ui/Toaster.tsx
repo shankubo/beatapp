@@ -56,8 +56,21 @@ function ToastRow({ toast }: { toast: Toast }) {
           : 'border-ink-600 bg-ink-850 text-ink-200',
       ].join(' ')}
     >
+      {/*
+        Traduction elargie a `string`.
+
+        `t` est surchargee, et son typage strict des cles ne sait pas resoudre
+        une union melant des cles a parametres et des cles sans: la surcharge
+        `t(cle, valeurParDefaut)` devient candidate et le `Record` de parametres
+        se retrouve compare a une chaine. Les cles restent verifiees en amont —
+        `ToastKey` est une union fermee, et `i18n:check` garantit qu'elles
+        existent dans les trois langues.
+      */}
       <span className="flex-1 text-sm">
-        {t(toast.i18nKey, toast.params ?? {})}
+        {(t as (key: string, params?: Record<string, string | number>) => string)(
+          toast.i18nKey,
+          toast.params ?? {},
+        )}
       </span>
 
       {toast.undo && (

@@ -6,6 +6,7 @@ import frAbout from './locales/fr/about.json';
 import frCommon from './locales/fr/common.json';
 import frEditor from './locales/fr/editor.json';
 import frExport from './locales/fr/export.json';
+import frInstall from './locales/fr/install.json';
 import frSamples from './locales/fr/samples.json';
 import frSettings from './locales/fr/settings.json';
 import frErrors from './locales/fr/errors.json';
@@ -14,6 +15,7 @@ import enAbout from './locales/en/about.json';
 import enCommon from './locales/en/common.json';
 import enEditor from './locales/en/editor.json';
 import enExport from './locales/en/export.json';
+import enInstall from './locales/en/install.json';
 import enSamples from './locales/en/samples.json';
 import enSettings from './locales/en/settings.json';
 import enErrors from './locales/en/errors.json';
@@ -22,6 +24,7 @@ import taAbout from './locales/ta/about.json';
 import taCommon from './locales/ta/common.json';
 import taEditor from './locales/ta/editor.json';
 import taExport from './locales/ta/export.json';
+import taInstall from './locales/ta/install.json';
 import taSamples from './locales/ta/samples.json';
 import taSettings from './locales/ta/settings.json';
 import taErrors from './locales/ta/errors.json';
@@ -34,6 +37,7 @@ export const NAMESPACES = [
   'common',
   'editor',
   'export',
+  'install',
   'samples',
   'settings',
   'errors',
@@ -48,6 +52,7 @@ export const frResources = {
   common: frCommon,
   editor: frEditor,
   export: frExport,
+  install: frInstall,
   samples: frSamples,
   settings: frSettings,
   errors: frErrors,
@@ -60,6 +65,7 @@ const resources = {
     common: enCommon,
     editor: enEditor,
     export: enExport,
+    install: enInstall,
     samples: enSamples,
     settings: enSettings,
     errors: enErrors,
@@ -69,6 +75,7 @@ const resources = {
     common: taCommon,
     editor: taEditor,
     export: taExport,
+    install: taInstall,
     samples: taSamples,
     settings: taSettings,
     errors: taErrors,

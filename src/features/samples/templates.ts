@@ -21,6 +21,7 @@ import type { Template } from '../../domain/template';
 export const TEMPLATES: readonly Template[] = [
   {
     id: 'beat-slideshow',
+    thumb: 'tpl-beat-slideshow',
     nameKey: 'samples:templates.beatSlideshow.name',
     descriptionKey: 'samples:templates.beatSlideshow.description',
     targetDuration: 15,
@@ -36,6 +37,7 @@ export const TEMPLATES: readonly Template[] = [
   },
   {
     id: 'cinematic-travel',
+    thumb: 'tpl-cinematic-travel',
     nameKey: 'samples:templates.cinematicTravel.name',
     descriptionKey: 'samples:templates.cinematicTravel.description',
     targetDuration: 20,
@@ -52,6 +54,7 @@ export const TEMPLATES: readonly Template[] = [
   },
   {
     id: 'quick-cuts',
+    thumb: 'tpl-quick-cuts',
     nameKey: 'samples:templates.quickCuts.name',
     descriptionKey: 'samples:templates.quickCuts.description',
     targetDuration: 8,
@@ -67,6 +70,7 @@ export const TEMPLATES: readonly Template[] = [
   },
   {
     id: 'countdown',
+    thumb: 'tpl-countdown',
     nameKey: 'samples:templates.countdown.name',
     descriptionKey: 'samples:templates.countdown.description',
     targetDuration: 12,
@@ -82,6 +86,7 @@ export const TEMPLATES: readonly Template[] = [
   },
   {
     id: 'before-after',
+    thumb: 'tpl-before-after',
     nameKey: 'samples:templates.beforeAfter.name',
     descriptionKey: 'samples:templates.beforeAfter.description',
     targetDuration: 10,

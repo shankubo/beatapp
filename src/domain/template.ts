@@ -45,6 +45,16 @@ export interface Template {
     | 'samples:templates.quickCuts.description'
     | 'samples:templates.countdown.description'
     | 'samples:templates.beforeAfter.description';
+  /**
+   * Base du nom de fichier de la vignette, dans `public/steps/`, sans largeur
+   * ni extension. Les fichiers sont produits par `npm run steps:images`.
+   */
+  thumb:
+    | 'tpl-beat-slideshow'
+    | 'tpl-cinematic-travel'
+    | 'tpl-quick-cuts'
+    | 'tpl-countdown'
+    | 'tpl-before-after';
   /** Duree cible du reel, en secondes. */
   targetDuration: number;
   /** Nombre de plans recommande. Informatif: ne pilote aucune mutation. */

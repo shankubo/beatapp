@@ -23,7 +23,14 @@ const VIEW_HEIGHT = 28;
 /** Marge laissee aux extremites, pour que les blocs ne touchent pas le bord. */
 const INSET = 1;
 
-export function TemplateSchematic({ template }: { template: Template }) {
+export function TemplateSchematic({
+  template,
+  className = 'h-7 w-full',
+}: {
+  template: Template;
+  /** Surcharge la taille: la vignette pose le schema en reglette basse. */
+  className?: string;
+}) {
   const marks = templateCutMarks(template);
 
   /*
@@ -46,7 +53,7 @@ export function TemplateSchematic({ template }: { template: Template }) {
       // Le schema redit visuellement ce que le texte de la carte annonce; le
       // faire lire deux fois generait un lecteur d'ecran.
       aria-hidden="true"
-      className="h-7 w-full"
+      className={className}
       preserveAspectRatio="none"
     >
       {/*

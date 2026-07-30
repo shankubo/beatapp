@@ -1,0 +1,56 @@
+{
+  "title": "Install the app",
+  "open": "Install / share",
+  "intro": "BeatApp installs straight from the browser, with no app store involved. Once installed it opens like a normal app and works offline.",
+  "scan": {
+    "title": "Scan or share",
+    "alt": "QR code pointing to the BeatApp address",
+    "hint": "Point your phone camera at this code: the address opens directly."
+  },
+  "share": {
+    "action": "Share",
+    "copy": "Copy link",
+    "title": "BeatApp",
+    "text": "Beat-synced reels, right in your browser.",
+    "copied": "Link copied.",
+    "copyFailed": "Could not copy. Select the address by hand."
+  },
+  "how": {
+    "title": "Install on your device"
+  },
+  "platform": {
+    "ios": "iPhone / iPad",
+    "android": "Android",
+    "desktop": "Computer"
+  },
+  "steps": {
+    "ios": {
+      "title": "iPhone and iPad — Safari",
+      "step1": "Open the address in Safari. Installing does not work from Chrome or Firefox on iOS.",
+      "step2": "Tap the Share button, the square with an upward arrow, at the bottom of the screen.",
+      "step3": "Scroll the list and choose “Add to Home Screen”.",
+      "step4": "Confirm with “Add”. The icon appears on your home screen.",
+      "note": "On iOS only Safari can install a web app: that is an Apple restriction, not a shortcoming of the app."
+    },
+    "android": {
+      "title": "Android — Chrome",
+      "step1": "Open the address in Chrome.",
+      "step2": "An “Install app” banner may appear: that is enough, just tap it.",
+      "step3": "Otherwise, open the ⋮ menu at the top right.",
+      "step4": "Choose “Install app” or “Add to Home screen”, then confirm.",
+      "note": "Firefox and Samsung Internet offer the same thing, named “Add to Home screen”."
+    },
+    "desktop": {
+      "title": "Computer — Chrome or Edge",
+      "step1": "Open the address in Chrome or Edge.",
+      "step2": "Look for the install icon at the right of the address bar: a screen with a downward arrow.",
+      "step3": "Click it, then click “Install”.",
+      "step4": "The app opens in its own window and is added to your Start menu or your Dock.",
+      "note": "Safari on Mac also installs web apps, through the File menu then “Add to Dock”."
+    }
+  },
+  "why": {
+    "title": "What installing changes",
+    "body": "The app opens full screen, with no address bar, and launches from your home screen. It works without a connection, and your projects stay saved on the device. Nothing is sent to a server, before or after installing."
+  }
+}

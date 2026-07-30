@@ -14,7 +14,8 @@
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "test:browser": "vitest run --project browser",
-    "i18n:check": "tsx scripts/i18n-check.ts"
+    "i18n:check": "tsx scripts/i18n-check.ts",
+    "steps:images": "node scripts/generate-step-images.mjs"
   },
   "dependencies": {
     "@use-gesture/react": "10.3.1",

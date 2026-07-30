@@ -1,0 +1,56 @@
+{
+  "title": "Installer l'application",
+  "open": "Installer / partager",
+  "intro": "BeatApp s'installe depuis le navigateur, sans passer par un magasin d'applications. Une fois installée, elle s'ouvre comme une application normale et fonctionne hors connexion.",
+  "scan": {
+    "title": "Scanner ou partager",
+    "alt": "QR code menant à l'adresse de BeatApp",
+    "hint": "Visez ce code avec l'appareil photo du téléphone : l'adresse s'ouvre directement."
+  },
+  "share": {
+    "action": "Partager",
+    "copy": "Copier le lien",
+    "title": "BeatApp",
+    "text": "Des reels calés sur le beat, directement dans le navigateur.",
+    "copied": "Lien copié.",
+    "copyFailed": "Copie impossible. Sélectionnez l'adresse à la main."
+  },
+  "how": {
+    "title": "Installer sur votre appareil"
+  },
+  "platform": {
+    "ios": "iPhone / iPad",
+    "android": "Android",
+    "desktop": "Ordinateur"
+  },
+  "steps": {
+    "ios": {
+      "title": "iPhone et iPad — Safari",
+      "step1": "Ouvrez l'adresse dans Safari. L'installation ne fonctionne pas depuis Chrome ni Firefox sur iOS.",
+      "step2": "Appuyez sur le bouton Partager, le carré avec une flèche vers le haut, en bas de l'écran.",
+      "step3": "Faites défiler la liste et choisissez « Sur l'écran d'accueil ».",
+      "step4": "Confirmez avec « Ajouter ». L'icône apparaît sur votre écran d'accueil.",
+      "note": "Sur iOS, seul Safari sait installer une application web : c'est une restriction d'Apple, pas un défaut de l'application."
+    },
+    "android": {
+      "title": "Android — Chrome",
+      "step1": "Ouvrez l'adresse dans Chrome.",
+      "step2": "Une bannière « Installer l'application » peut apparaître : elle suffit, appuyez dessus.",
+      "step3": "Sinon, ouvrez le menu ⋮ en haut à droite.",
+      "step4": "Choisissez « Installer l'application » ou « Ajouter à l'écran d'accueil », puis confirmez.",
+      "note": "Firefox et Samsung Internet proposent la même chose, sous le nom « Ajouter à l'écran d'accueil »."
+    },
+    "desktop": {
+      "title": "Ordinateur — Chrome ou Edge",
+      "step1": "Ouvrez l'adresse dans Chrome ou Edge.",
+      "step2": "Repérez l'icône d'installation à droite de la barre d'adresse : un écran avec une flèche vers le bas.",
+      "step3": "Cliquez dessus, puis sur « Installer ».",
+      "step4": "L'application s'ouvre dans sa propre fenêtre et s'ajoute à votre menu Démarrer ou à votre Dock.",
+      "note": "Safari sur Mac installe aussi les applications web, via le menu Fichier puis « Ajouter au Dock »."
+    }
+  },
+  "why": {
+    "title": "Ce que l'installation change",
+    "body": "L'application s'ouvre en plein écran, sans barre d'adresse, et se lance depuis votre écran d'accueil. Elle fonctionne sans connexion, et vos projets restent enregistrés sur l'appareil. Rien n'est envoyé sur un serveur, avant comme après l'installation."
+  }
+}

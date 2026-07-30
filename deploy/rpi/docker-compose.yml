@@ -57,7 +57,11 @@ services:
 
     # Bornes memoire: sur un RPi partage avec d'autres services, un conteneur
     # sans limite peut faire tuer les autres par le noyau en cas de fuite.
-    mem_limit: 256m
+    # Pas de `mem_limit`: le noyau de cette machine n'expose pas les cgroups
+    # memoire, et Docker se contente d'avertir puis d'ignorer la limite. La
+    # declarer donnerait une fausse impression de garde-fou a chaque demarrage.
+    # A reactiver si `cgroup_enable=memory` est ajoute a la ligne de commande
+    # du noyau.
 
     logging:
       driver: json-file
@@ -75,7 +79,11 @@ services:
   # pas la charge, et au pire moment. Trois garde-fous ci-dessous l'en
   # empechent; ne pas les retirer.
   watchtower:
-    image: containrrr/watchtower
+    # `nickfedor/watchtower` et non `containrrr/watchtower`: l'original n'est
+    # plus maintenu depuis 2023 et parle encore l'API Docker 1.25, que le
+    # demon refuse depuis la version 25 — le conteneur redemarrait en boucle
+    # sur « client version 1.25 is too old ». Ce fork est la reprise active.
+    image: nickfedor/watchtower:latest
     container_name: beatapp-watchtower
     restart: unless-stopped
     volumes:
@@ -84,22 +92,27 @@ services:
       # sur l'hote.
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-    # Garde-fou 1: `--scope beatapp` restreint l'action aux seuls conteneurs
-    # portant l'etiquette correspondante.
-    # Garde-fou 2: `--label-enable` lui interdit de toucher a quoi que ce soit
-    # qui ne porte pas explicitement une etiquette d'activation.
-    # Garde-fou 3: `--cleanup` ne supprime que les images DEVENUES obsoletes
-    # par sa propre action, jamais celles des autres conteneurs.
+    # `--scope beatapp` restreint l'action aux seuls conteneurs portant
+    # l'etiquette `com.centurylinklabs.watchtower.scope=beatapp`. C'est LE
+    # garde-fou qui protege saisietemps, pwa-asso et portainer.
+    #
+    # Piege mesure: y ajouter `--label-enable` donnait `scanned=0` — Watchtower
+    # ne voyait plus aucun conteneur et ne mettait donc jamais rien a jour, en
+    # affichant pourtant des cycles reussis. Les deux filtres se cumulent au
+    # lieu de se renforcer; `--scope` suffit et se verifie dans les journaux
+    # (« Only checking containers in scope »).
+    #
+    # `--cleanup` ne supprime que les images devenues obsoletes par sa propre
+    # action, jamais celles des autres conteneurs.
     command: >
       --interval 60
       --cleanup
       --scope beatapp
-      --label-enable
 
     labels:
       com.centurylinklabs.watchtower.scope: beatapp
 
-    mem_limit: 128m
+    # Voir la note sur `mem_limit` du service beatapp.
     logging:
       driver: json-file
       options:

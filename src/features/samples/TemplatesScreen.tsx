@@ -15,7 +15,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { TEMPLATES } from './templates';
-import { TemplateSchematic } from './TemplateSchematic';
+import { TemplateThumb } from './TemplateThumb';
 import { TemplateDetail } from './TemplateDetail';
 import { IconButton } from '../../components/ui/IconButton';
 import { ArrowLeftIcon, CloseIcon } from '../../components/ui/icons';
@@ -75,7 +75,7 @@ export function TemplatesScreen({ onClose }: { onClose: () => void }) {
                     onClick={() => setSelected(template)}
                     className="flex w-full flex-col gap-2 rounded-xl border border-ink-600 bg-ink-850 p-3 text-left active:bg-ink-800"
                   >
-                    <TemplateSchematic template={template} />
+                    <TemplateThumb template={template} />
 
                     <span className="block text-sm font-medium text-ink-50">
                       {t(template.nameKey)}

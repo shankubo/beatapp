@@ -187,8 +187,9 @@ function orientationLabelKey(orientation: FrameOrientation) {
 
 
 export function SettingsScreen({ onClose }: { onClose: () => void }) {
-  const { t, i18n } = useTranslation(['settings', 'common', 'editor', 'about']);
+  const { t, i18n } = useTranslation(['settings', 'common', 'editor', 'about', 'install']);
   const setAboutOpen = useUiStore((state) => state.setAboutOpen);
+  const setInstallOpen = useUiStore((state) => state.setInstallOpen);
 
   const project = useProjectStore((state) => state.project);
   const setFrameAspect = useProjectStore((state) => state.setFrameAspect);
@@ -544,6 +545,20 @@ export function SettingsScreen({ onClose }: { onClose: () => void }) {
           apres ce qui la configure. Ouvrir l'ecran referme les reglages — deux
           ecrans pleins empiles laisseraient une pile a defaire a rebours.
         */}
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            setInstallOpen(true);
+          }}
+          className="surface flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-ink-600 bg-ink-850 px-3 text-sm font-medium text-ink-200 active:bg-ink-800"
+        >
+          <span>{t('install:open')}</span>
+          <span aria-hidden="true" className="text-ink-400">
+            ›
+          </span>
+        </button>
+
         <button
           type="button"
           onClick={() => {

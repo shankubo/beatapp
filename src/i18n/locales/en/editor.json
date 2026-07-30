@@ -35,7 +35,17 @@
       "hint": "Locks the montage to the beat automatically.",
       "done": "{{bpm}} BPM — montage locked"
     },
-    "needMedia": "Import images or videos first."
+    "needMedia": "Import images or videos first.",
+    "pitch": {
+      "title": "BeatApp",
+      "lines": [
+        "Take full control of your Reels and video clips.",
+        "Simple, fast, and easy to use.",
+        "Everything is processed directly on your smartphone.",
+        "Export unlimited MP4 videos with audio.",
+        "100% free — no subscriptions, no in-app purchases."
+      ]
+    }
   },
   "transport": {
     "play": "Play",

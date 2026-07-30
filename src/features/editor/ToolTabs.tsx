@@ -11,13 +11,23 @@ import {
 } from '../../components/ui/icons';
 import { useProjectStore } from '../../store/useProjectStore';
 
+/**
+ * Ordre des onglets: il suit le PARCOURS de montage.
+ *
+ * Media, Audio, Beat reprennent les trois etapes de l'ecran de demarrage —
+ * importer, sonoriser, caler. Edit, Text, Effects viennent ensuite: ce sont les
+ * retouches, qui n'ont de sens qu'une fois le montage en place.
+ *
+ * Cet ordre est la SEULE source de l'ordre affiche: `SheetContent` associe un
+ * panneau a chaque onglet par un `switch`, donc deplacer une entree ici suffit.
+ */
 const TABS: readonly { id: ToolTab; icon: () => React.ReactElement }[] = [
   { id: 'media', icon: PhotoIcon },
-  { id: 'edit', icon: SwapIcon },
   { id: 'audio', icon: MusicIcon },
+  { id: 'beat', icon: BeatIcon },
+  { id: 'edit', icon: SwapIcon },
   { id: 'text', icon: TextIcon },
   { id: 'effects', icon: SparkIcon },
-  { id: 'beat', icon: BeatIcon },
 ];
 
 export function ToolTabs() {

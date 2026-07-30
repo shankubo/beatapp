@@ -43,6 +43,10 @@ const ExportScreen = lazy(() =>
 const AboutScreen = lazy(() =>
   import('../about/AboutScreen').then((module) => ({ default: module.AboutScreen })),
 );
+
+const InstallScreen = lazy(() =>
+  import('../install/InstallScreen').then((module) => ({ default: module.InstallScreen })),
+);
 const SettingsScreen = lazy(() =>
   import('../settings/SettingsScreen').then((module) => ({ default: module.SettingsScreen })),
 );
@@ -135,6 +139,8 @@ export function EditorShell() {
   const setTemplatesOpen = useUiStore((state) => state.setTemplatesOpen);
   const aboutOpen = useUiStore((state) => state.aboutOpen);
   const setAboutOpen = useUiStore((state) => state.setAboutOpen);
+  const installOpen = useUiStore((state) => state.installOpen);
+  const setInstallOpen = useUiStore((state) => state.setInstallOpen);
   const onboardingOpen = useUiStore((state) => state.onboardingOpen);
   const setOnboardingOpen = useUiStore((state) => state.setOnboardingOpen);
   const fullscreen = useUiStore((state) => state.fullscreen);
@@ -350,6 +356,12 @@ export function EditorShell() {
         // n'a rien a faire dans le bundle du premier rendu.
         <Suspense fallback={<div className="absolute inset-0 z-40 bg-ink-950" />}>
           <AboutScreen onClose={() => setAboutOpen(false)} />
+        </Suspense>
+      )}
+
+      {installOpen && (
+        <Suspense fallback={<div className="absolute inset-0 z-40 bg-ink-950" />}>
+          <InstallScreen onClose={() => setInstallOpen(false)} />
         </Suspense>
       )}
 
