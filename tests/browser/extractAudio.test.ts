@@ -234,7 +234,10 @@ async function makeRealVideo(): Promise<File> {
 }
 
 describe('parcours complet du studio', () => {
-  it('extrait le son d’une vraie video et le reimporte comme audio', async () => {
+  it('extrait le son d’une vraie video et le reimporte comme audio', async ({ skip }) => {
+    // La fixture a besoin d'un encodeur AAC, absent des Chromium open source.
+    skip(!(await aacAvailable()), 'AAC non encodable par ce navigateur');
+
     const video = await makeRealVideo();
 
     const extracted = await extractAudioFromVideo(video);
@@ -247,4 +250,34 @@ describe('parcours complet du studio', () => {
     expect(asset.kind).toBe('audio');
     expect(asset.duration).toBeGreaterThan(0.5);
   }, 60_000);
+});
+
+describe('simulation CI', () => {
+  it('les tests AAC se sautent quand l’encodeur manque', async ({ skip }) => {
+    // Neutralise l'encodeur AAC comme sur un Chromium open source.
+    const vrai = AudioEncoder.isConfigSupported;
+    (AudioEncoder as unknown as { isConfigSupported: unknown }).isConfigSupported = async (
+      c: AudioEncoderConfig,
+    ) => (c.codec === 'mp4a.40.2' ? { supported: false, config: c } : vrai.call(AudioEncoder, c));
+
+    try {
+      const { pickAudioExportFormat, encodeAudioBuffer } = await import(
+        '@/features/audio/extractAudio'
+      );
+      const format = await pickAudioExportFormat();
+      // Sans AAC, le repli doit etre Opus/WebM.
+      expect(format.codec).toBe('opus');
+      expect(format.extension).toBe('webm');
+
+      const ac = new OfflineAudioContext(1, 48000, 48000);
+      const osc = ac.createOscillator();
+      osc.connect(ac.destination);
+      osc.start();
+      const blob = await encodeAudioBuffer(await ac.startRendering(), format);
+      expect(blob.type).toBe('audio/webm');
+    } finally {
+      (AudioEncoder as unknown as { isConfigSupported: unknown }).isConfigSupported = vrai;
+    }
+    void skip;
+  }, 30_000);
 });

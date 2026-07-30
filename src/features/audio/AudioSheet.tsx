@@ -19,6 +19,7 @@ import {
   PlayIcon,
   PlusIcon,
   TrashIcon,
+  VideoIcon,
 } from '../../components/ui/icons';
 import { musicTrack } from '../../domain/project';
 import { GENERATED_SAMPLES, findGeneratedSample } from '../samples/sampleGen';
@@ -109,6 +110,23 @@ export function AudioSheet() {
       >
         <PlusIcon />
         {t('editor:audio.import')}
+      </button>
+
+      {/*
+        Entree du studio, visible MEME sans piste.
+
+        Elle n'existait qu'au bas de l'editeur de forme d'onde, donc uniquement
+        une fois une musique posee. Or « extraire le son d'une video » sert
+        justement a obtenir sa PREMIERE piste: le chemin le plus utile etait le
+        seul inatteignable.
+      */}
+      <button
+        type="button"
+        onClick={() => setAudioStudioOpen(true)}
+        className="surface flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ink-600 text-xs font-medium text-ink-200 active:bg-ink-850 [&>svg]:size-4"
+      >
+        <VideoIcon />
+        {t('editor:audio.studioOpen')}
       </button>
 
       <input
@@ -244,19 +262,6 @@ export function AudioSheet() {
           </h3>
           <AudioEditor track={track} asset={asset} />
 
-          {/*
-            Passage au studio: la feuille du bas suffit pour un volume ou une
-            coupe rapide, pas pour travailler le son. L'entree est posee ICI,
-            au bout de l'editeur reduit, la ou l'on constate qu'on manque de
-            place.
-          */}
-          <button
-            type="button"
-            onClick={() => setAudioStudioOpen(true)}
-            className="surface mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-ink-600 bg-ink-900 text-xs font-medium text-ink-100 active:bg-ink-800"
-          >
-            {t('editor:audio.studioOpen')}
-          </button>
         </section>
       )}
 
