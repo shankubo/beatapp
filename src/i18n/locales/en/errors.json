@@ -9,6 +9,7 @@
     "corrupted": "This file appears unreadable or damaged.",
     "tooLarge": "This file exceeds the {{maxMb}} MB limit.",
     "tooLong": "This media exceeds the {{maxMinutes}} minute limit.",
+    "noAudioTrack": "This video has no audio track.",
     "decodeFailed": "This media can't be read on this device.",
     "noFileSelected": "No file selected."
   },
@@ -46,6 +47,7 @@
   "audio": {
     "decodeFailed": "This audio file couldn't be decoded.",
     "analysisFailed": "Beat analysis failed.",
+    "exportFailed": "Audio export failed. Try again.",
     "tooQuiet": "This file is too quiet to detect a beat."
   },
   "export": {

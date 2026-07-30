@@ -37,6 +37,7 @@ export function AudioSheet() {
 
   const { register } = useMedia();
   const pushToast = useUiStore((state) => state.pushToast);
+  const setAudioStudioOpen = useUiStore((state) => state.setAudioStudioOpen);
   const { applyGeneratedSample } = useGeneratedSample();
   const { playingId, toggle, stop: stopPreview } = useSamplePreview();
   const library = useLibrary();
@@ -242,6 +243,20 @@ export function AudioSheet() {
             {t('editor:audio.edit')}
           </h3>
           <AudioEditor track={track} asset={asset} />
+
+          {/*
+            Passage au studio: la feuille du bas suffit pour un volume ou une
+            coupe rapide, pas pour travailler le son. L'entree est posee ICI,
+            au bout de l'editeur reduit, la ou l'on constate qu'on manque de
+            place.
+          */}
+          <button
+            type="button"
+            onClick={() => setAudioStudioOpen(true)}
+            className="surface mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-ink-600 bg-ink-900 text-xs font-medium text-ink-100 active:bg-ink-800"
+          >
+            {t('editor:audio.studioOpen')}
+          </button>
         </section>
       )}
 

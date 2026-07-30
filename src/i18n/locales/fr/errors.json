@@ -9,6 +9,7 @@
     "corrupted": "Ce fichier semble illisible ou endommagé.",
     "tooLarge": "Ce fichier dépasse la taille maximale de {{maxMb}} Mo.",
     "tooLong": "Ce média dépasse la durée maximale de {{maxMinutes}} minutes.",
+    "noAudioTrack": "Cette vidéo ne contient pas de piste sonore.",
     "decodeFailed": "Impossible de lire ce média sur cet appareil.",
     "noFileSelected": "Aucun fichier sélectionné."
   },
@@ -27,6 +28,7 @@
   "audio": {
     "decodeFailed": "Ce fichier audio n'a pas pu être décodé.",
     "analysisFailed": "L'analyse du rythme a échoué.",
+    "exportFailed": "L'export audio a échoué. Réessayez.",
     "tooQuiet": "Ce fichier est trop silencieux pour détecter un rythme."
   },
   "ai": {

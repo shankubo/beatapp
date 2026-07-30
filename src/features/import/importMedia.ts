@@ -25,7 +25,8 @@ export type ImportErrorKey =
   | 'errors:import.tooLarge'
   | 'errors:import.tooLong'
   | 'errors:import.decodeFailed'
-  | 'errors:import.noFileSelected';
+  | 'errors:import.noFileSelected'
+  | 'errors:import.noAudioTrack';
 
 /** Erreur d'import portant une cle du namespace `errors`. */
 export class ImportError extends Error {

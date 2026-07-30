@@ -41,6 +41,7 @@ export type ToastKey =
   | 'errors:audio.decodeFailed'
   | 'errors:audio.analysisFailed'
   | 'errors:audio.tooQuiet'
+  | 'errors:audio.exportFailed'
   | AiErrorKey
   | 'errors:speech.unsupported'
   | 'errors:speech.denied'
@@ -82,6 +83,8 @@ interface UiState {
   installOpen: boolean;
   /** Menu principal ouvert. */
   menuOpen: boolean;
+  /** Studio audio ouvert. */
+  audioStudioOpen: boolean;
   /**
    * Timeline repliee: seule une poignee reste visible.
    *
@@ -117,6 +120,7 @@ interface UiState {
   setAboutOpen: (open: boolean) => void;
   setInstallOpen: (open: boolean) => void;
   setMenuOpen: (open: boolean) => void;
+  setAudioStudioOpen: (open: boolean) => void;
   setTemplatesOpen: (open: boolean) => void;
   setTimelineCollapsed: (collapsed: boolean) => void;
   setOnboardingOpen: (open: boolean) => void;
@@ -136,6 +140,7 @@ export const useUiStore = create<UiState>()((set) => ({
   aboutOpen: false,
   installOpen: false,
   menuOpen: false,
+  audioStudioOpen: false,
   timelineCollapsed: false,
   onboardingOpen: false,
   fullscreen: false,
@@ -180,6 +185,14 @@ export const useUiStore = create<UiState>()((set) => ({
   // le panneau, invisible mais active. Meme regle que la galerie de modeles.
   setMenuOpen: (menuOpen) =>
     set(menuOpen ? { menuOpen, activeTab: null, sheetSnap: 'closed' } : { menuOpen }),
+
+  // Meme regle que les autres ecrans pleins: ouvrir referme la feuille d'outil.
+  setAudioStudioOpen: (audioStudioOpen) =>
+    set(
+      audioStudioOpen
+        ? { audioStudioOpen, activeTab: null, sheetSnap: 'closed' }
+        : { audioStudioOpen },
+    ),
 
   // Ouvrir la galerie referme la feuille: une feuille active derriere un ecran
   // plein est un etat invisible mais vivant. Meme regle que le plein ecran.

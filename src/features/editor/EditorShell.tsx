@@ -45,6 +45,10 @@ const AboutScreen = lazy(() =>
   import('../about/AboutScreen').then((module) => ({ default: module.AboutScreen })),
 );
 
+const AudioStudio = lazy(() =>
+  import('../audio/AudioStudio').then((module) => ({ default: module.AudioStudio })),
+);
+
 const InstallScreen = lazy(() =>
   import('../install/InstallScreen').then((module) => ({ default: module.InstallScreen })),
 );
@@ -116,6 +120,8 @@ export function EditorShell() {
   const setInstallOpen = useUiStore((state) => state.setInstallOpen);
   const onboardingOpen = useUiStore((state) => state.onboardingOpen);
   const setOnboardingOpen = useUiStore((state) => state.setOnboardingOpen);
+  const audioStudioOpen = useUiStore((state) => state.audioStudioOpen);
+  const setAudioStudioOpen = useUiStore((state) => state.setAudioStudioOpen);
   const menuOpen = useUiStore((state) => state.menuOpen);
   const setMenuOpen = useUiStore((state) => state.setMenuOpen);
   const fullscreen = useUiStore((state) => state.fullscreen);
@@ -266,6 +272,12 @@ export function EditorShell() {
           </BottomSheet>
         )}
       </div>
+
+      {audioStudioOpen && (
+        <Suspense fallback={<div className="absolute inset-0 z-40 bg-ink-950" />}>
+          <AudioStudio onClose={() => setAudioStudioOpen(false)} />
+        </Suspense>
+      )}
 
       {menuOpen && <MainMenu onClose={() => setMenuOpen(false)} />}
 

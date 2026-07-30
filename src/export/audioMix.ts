@@ -53,6 +53,46 @@ export async function mixdown(
 }
 
 /**
+ * Rend UNE piste seule, pour l'exporter en fichier audio.
+ *
+ * Reutilise `scheduleTrack`, donc exactement le meme decoupage et les memes
+ * fondus que l'aperçu et que le mixage d'export: c'est le pendant, pour l'audio
+ * seul, de la regle du compositeur unique. Un second calcul ici pourrait
+ * produire un MP4 qui ne ressemble pas a ce qu'on entend.
+ *
+ * Pas de limiteur, contrairement a `mixdown`: il n'existe que pour rattraper la
+ * SOMME de plusieurs pistes. Sur une piste isolee il ne ferait qu'ecraser une
+ * dynamique deja correcte.
+ *
+ * La piste est ramenee a l'origine: le fichier commence a son premier son, et
+ * non apres le silence qui la place dans le montage.
+ */
+export async function renderTrack(
+  track: AudioTrack,
+  buffer: AudioBuffer,
+): Promise<AudioBuffer | null> {
+  const audible = Math.min(
+    segmentsDuration(trackSegments(track)),
+    // Les silences intercales comptent aussi dans la duree du fichier.
+    scheduleSegments(track, {
+      from: 0,
+      until: Number.POSITIVE_INFINITY,
+      sourceDuration: buffer.duration,
+    }).reduce((end, segment) => Math.max(end, segment.at - track.start + segment.duration), 0),
+  );
+  if (audible <= 0) return null;
+
+  const frameCount = Math.ceil(audible * MIX_SAMPLE_RATE);
+  const context = new OfflineAudioContext(MIX_CHANNELS, frameCount, MIX_SAMPLE_RATE);
+
+  // `start: 0` le temps du rendu: la position dans le montage n'a pas de sens
+  // dans un fichier autonome.
+  scheduleTrack(context, context.destination, { ...track, start: 0 }, buffer, audible);
+
+  return context.startRendering();
+}
+
+/**
  * Planifie une piste, segment par segment.
  *
  * Les segments sont joues bout a bout: un passage retire par l'utilisateur

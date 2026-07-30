@@ -67,6 +67,7 @@ export function MainMenu({ onClose }: { onClose: () => void }) {
   const setAboutOpen = useUiStore((state) => state.setAboutOpen);
   const setInstallOpen = useUiStore((state) => state.setInstallOpen);
   const setTemplatesOpen = useUiStore((state) => state.setTemplatesOpen);
+  const setAudioStudioOpen = useUiStore((state) => state.setAudioStudioOpen);
 
   const rate = usePlaybackStore((state) => state.rate);
   const setRate = usePlaybackStore((state) => state.setRate);
@@ -237,6 +238,12 @@ export function MainMenu({ onClose }: { onClose: () => void }) {
               label={t('menu:edit.audio')}
               hint={t('menu:edit.audioHint')}
               onClick={() => goToTab('audio')}
+            />
+            <Entry
+              icon={<MusicIcon />}
+              label={t('editor:audio.studio')}
+              hint={t('editor:audio.studioOpen')}
+              onClick={() => goToScreen(setAudioStudioOpen)}
             />
 
             {/*
