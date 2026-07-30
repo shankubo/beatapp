@@ -21,7 +21,13 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { usePlaybackStore } from '../../store/usePlaybackStore';
 import { useMedia } from '../preview/MediaProvider';
 import { Slider } from '../../components/ui/Slider';
-import { CutIcon, TrashIcon } from '../../components/ui/icons';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CopyIcon,
+  CutIcon,
+  TrashIcon,
+} from '../../components/ui/icons';
 import { computePeaksForRange, drawWaveform, type WaveformPeaks } from '../../audio/waveform';
 import { segmentsDuration, trackSegments } from '../../domain/audioEdit';
 import { divisionGrid } from '../../domain/beatmap';
@@ -51,6 +57,8 @@ export function AudioEditor({ track, asset }: AudioEditorProps) {
   const setAudioRange = useProjectStore((state) => state.setAudioRange);
   const splitAudio = useProjectStore((state) => state.splitAudio);
   const removeAudioSegment = useProjectStore((state) => state.removeAudioSegment);
+  const duplicateAudioSegment = useProjectStore((state) => state.duplicateAudioSegment);
+  const moveAudioSegment = useProjectStore((state) => state.moveAudioSegment);
   const setAudioOffset = useProjectStore((state) => state.setAudioOffset);
 
   const currentTime = usePlaybackStore((state) => state.time);
@@ -165,6 +173,35 @@ export function AudioEditor({ track, asset }: AudioEditorProps) {
         color: '#c9d1c4',
       });
       ctx.restore();
+    }
+
+    /*
+      Frontieres de coupe, tracees APRES les segments.
+
+      Bug corrige: une coupe produit deux segments ADJACENTS ([0,5] et [5,32]).
+      Les deux etant conserves, la boucle ci-dessus les repeignait tous deux en
+      clair — le resultat etait pixel pour pixel identique a une piste non
+      coupee. Rien ne montrait que l'action avait eu lieu, alors que le montage
+      avait bel et bien change.
+
+      Le trait est donc dessine explicitement a chaque jointure INTERNE. Les
+      bords exterieurs de la piste en sont exclus: ce ne sont pas des coupes.
+    */
+    for (let index = 1; index < segments.length; index++) {
+      const boundary = segments[index]!.in;
+      if (boundary <= windowStart || boundary >= windowEnd) continue;
+
+      const x = ((boundary - windowStart) / visibleDuration) * width;
+
+      // Chartreuse: c'est la couleur du rythme et des coupes dans tout le
+      // projet, y compris sur la timeline video.
+      ctx.fillStyle = '#c7f000';
+      ctx.fillRect(x - 1, 0, 2, WAVE_HEIGHT);
+
+      // Petits chevrons en tete et en pied: le trait seul se confondait avec la
+      // tete de lecture, qui est aussi un trait vertical clair.
+      ctx.fillRect(x - 4, 0, 8, 3);
+      ctx.fillRect(x - 4, WAVE_HEIGHT - 3, 8, 3);
     }
   }, [peaks, width, segments, windowStart, windowEnd, visibleDuration]);
 
@@ -386,6 +423,37 @@ export function AudioEditor({ track, asset }: AudioEditorProps) {
                   l'avance puis oublie — alors qu'une meme musique contient des
                   passages qu'on veut recoller et d'autres qu'on veut trouer.
                 */}
+                {/*
+                  Copier et deplacer, au meme endroit que supprimer: ce sont les
+                  quatre gestes qu'on fait sur un passage, et les separer aurait
+                  oblige a chercher ailleurs ce qui se decide ici.
+                */}
+                <button
+                  type="button"
+                  onClick={() => duplicateAudioSegment(track.id, segment.id)}
+                  aria-label={t('editor:audio.duplicateSegment')}
+                  className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 active:bg-ink-800 [&>svg]:size-4"
+                >
+                  <CopyIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveAudioSegment(track.id, segment.id, -1)}
+                  disabled={index === 0}
+                  aria-label={t('editor:audio.moveSegmentEarlier')}
+                  className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 active:bg-ink-800 disabled:opacity-30 [&>svg]:size-4"
+                >
+                  <ChevronUpIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveAudioSegment(track.id, segment.id, 1)}
+                  disabled={index === segments.length - 1}
+                  aria-label={t('editor:audio.moveSegmentLater')}
+                  className="flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-400 active:bg-ink-800 disabled:opacity-30 [&>svg]:size-4"
+                >
+                  <ChevronDownIcon />
+                </button>
                 <button
                   type="button"
                   onClick={() => removeAudioSegment(track.id, segment.id, { leaveGap: false })}

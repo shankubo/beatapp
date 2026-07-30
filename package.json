@@ -1,7 +1,7 @@
 {
   "name": "beatapp",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.4",
   "type": "module",
   "description": "PWA mobile-first pour creer des reels Instagram / WhatsApp, 100% cote client",
   "scripts": {

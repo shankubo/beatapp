@@ -223,6 +223,64 @@ export function splitAt(
 }
 
 /**
+ * Duplique un segment et pose la copie JUSTE APRES l'original.
+ *
+ * C'est le « copier-coller » d'un passage: repeter un refrain, doubler une
+ * mesure. La copie garde les memes bornes source — c'est le meme son — mais
+ * s'ajoute a la suite de lecture.
+ *
+ * N'utilise PAS `applySegments`, contrairement aux autres operations. La
+ * normalisation trie par borne d'entree et fusionne les recouvrements: deux
+ * segments identiques y seraient immediatement refondus en un seul, et la copie
+ * disparaitrait sans laisser de trace. L'ordre des segments est ici porteur de
+ * sens (c'est l'ordre de LECTURE), il ne doit pas etre recalcule.
+ */
+export function duplicateSegment(track: AudioTrack, segmentId: Id): AudioTrack {
+  const segments = trackSegments(track);
+  const index = segments.findIndex((segment) => segment.id === segmentId);
+  if (index < 0) return track;
+
+  const original = segments[index]!;
+  const copy: AudioSegment = { ...original, id: newId('seg'), gap: undefined };
+
+  const next = [...segments.slice(0, index + 1), copy, ...segments.slice(index + 1)];
+
+  return {
+    ...track,
+    // Les bornes globales ne changent pas: la copie reprend une portion deja
+    // comprise entre `in` et `out`.
+    segments: next,
+  };
+}
+
+/**
+ * Deplace un segment d'un rang dans l'ordre de lecture.
+ *
+ * `direction` vaut -1 (plus tot) ou +1 (plus tard). Sans effet aux extremites.
+ *
+ * Meme raison que `duplicateSegment` de ne pas normaliser: reordonner puis
+ * trier par borne source annulerait exactement le geste qu'on vient de faire.
+ */
+export function moveSegment(
+  track: AudioTrack,
+  segmentId: Id,
+  direction: -1 | 1,
+): AudioTrack {
+  const segments = trackSegments(track);
+  const index = segments.findIndex((segment) => segment.id === segmentId);
+  if (index < 0) return track;
+
+  const target = index + direction;
+  if (target < 0 || target >= segments.length) return track;
+
+  const next = [...segments];
+  const [moved] = next.splice(index, 1);
+  next.splice(target, 0, moved!);
+
+  return { ...track, segments: next };
+}
+
+/**
  * Supprime un segment par son identifiant. Refuse de vider la piste.
  *
  * `magnet` decide de ce qui arrive au temps libere:

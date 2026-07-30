@@ -17,6 +17,8 @@ import {
   scheduleSegments,
   segmentsDuration,
   setTrackRange,
+  duplicateSegment,
+  moveSegment,
   splitAt,
   trackSegments,
   updateSegment,
@@ -377,5 +379,67 @@ describe('removeSegment — aimant', () => {
     const step2 = removeSegment({ ...step1, magnet: false }, 'a', 6);
     // Seul `c` subsiste, toujours a 14 s.
     expect(positions(step2)).toEqual([14]);
+  });
+});
+
+/**
+ * Copier-coller et reordonnancement d'un passage.
+ *
+ * Piege central: `normalizeSegments` trie par borne d'entree et fusionne les
+ * recouvrements. Deux copies d'un meme passage y seraient refondues en une, et
+ * un deplacement serait annule par le tri. Ces deux operations contournent donc
+ * la normalisation — ce que ces tests verrouillent.
+ */
+describe('duplicateSegment', () => {
+  it('pose la copie juste apres l’original', () => {
+    const track = makeTrack({
+      segments: [
+        { id: 'a', in: 0, out: 10 },
+        { id: 'b', in: 10, out: 20 },
+      ],
+    });
+
+    const result = duplicateSegment(track, 'a');
+    const segments = trackSegments(result);
+
+    expect(segments).toHaveLength(3);
+    expect(segments.map((s) => `${s.in}-${s.out}`)).toEqual(['0-10', '0-10', '10-20']);
+    // La copie porte un identifiant distinct: sans cela, toute action visant
+    // « a » toucherait les deux.
+    expect(segments[1]!.id).not.toBe('a');
+  });
+
+  it('laisse la piste intacte si le segment n’existe pas', () => {
+    const track = makeTrack({ segments: [{ id: 'a', in: 0, out: 10 }] });
+    expect(duplicateSegment(track, 'inconnu')).toBe(track);
+  });
+});
+
+describe('moveSegment', () => {
+  it('avance et recule un segment dans l’ordre de lecture', () => {
+    const track = makeTrack({
+      segments: [
+        { id: 'a', in: 0, out: 10 },
+        { id: 'b', in: 10, out: 20 },
+        { id: 'c', in: 20, out: 30 },
+      ],
+    });
+
+    const later = moveSegment(track, 'a', 1);
+    expect(trackSegments(later).map((s) => s.id)).toEqual(['b', 'a', 'c']);
+
+    const earlier = moveSegment(track, 'c', -1);
+    expect(trackSegments(earlier).map((s) => s.id)).toEqual(['a', 'c', 'b']);
+  });
+
+  it('ne fait rien aux extremites', () => {
+    const track = makeTrack({
+      segments: [
+        { id: 'a', in: 0, out: 10 },
+        { id: 'b', in: 10, out: 20 },
+      ],
+    });
+    expect(moveSegment(track, 'a', -1)).toBe(track);
+    expect(moveSegment(track, 'b', 1)).toBe(track);
   });
 });

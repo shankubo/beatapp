@@ -34,10 +34,15 @@ import {
   CloseIcon,
   DownloadIcon,
   MusicIcon,
+  PauseIcon,
+  PlayIcon,
+  SkipBackIcon,
+  SkipForwardIcon,
   VideoIcon,
 } from '../../components/ui/icons';
 import { musicTrack } from '../../domain/project';
-import { formatDuration } from '../../lib/format';
+import { formatDuration, formatRate } from '../../lib/format';
+import { usePlaybackStore } from '../../store/usePlaybackStore';
 
 export function AudioStudio({ onClose }: { onClose: () => void }) {
   const { t, i18n } = useTranslation(['editor', 'common', 'errors', 'export']);
@@ -50,6 +55,13 @@ export function AudioStudio({ onClose }: { onClose: () => void }) {
   const pushToast = useUiStore((state) => state.pushToast);
   const { register, audioBuffers, audioContext } = useMedia();
 
+  const isPlaying = usePlaybackStore((state) => state.isPlaying);
+  const setPlaying = usePlaybackStore((state) => state.setPlaying);
+  const currentTime = usePlaybackStore((state) => state.time);
+  const setTime = usePlaybackStore((state) => state.setTime);
+  const rate = usePlaybackStore((state) => state.rate);
+  const setRate = usePlaybackStore((state) => state.setRate);
+
   const [busy, setBusy] = useState<'import' | 'extract' | 'export' | null>(null);
   /** Piste en cours d'edition. `null` = la musique principale. */
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -61,6 +73,9 @@ export function AudioStudio({ onClose }: { onClose: () => void }) {
   const selected =
     tracks.find((track) => track.id === selectedId) ?? musicTrack(project) ?? tracks[0];
   const asset = selected ? project.assets[selected.assetId] : undefined;
+  // Le buffer decode porte les vraies caracteristiques du son (canaux,
+  // echantillonnage), que les metadonnees d'import ne conservent pas.
+  const buffer = selected ? audioBuffers.get(selected.assetId) : undefined;
 
   // --- Ajouter une musique depuis un fichier audio.
   const handleAudioFile = async (files: FileList | null) => {
@@ -255,6 +270,78 @@ export function AudioStudio({ onClose }: { onClose: () => void }) {
           </section>
         )}
 
+        {/* --- Informations de la piste --- */}
+        {selected && asset && buffer && (
+          <section className="space-y-1.5 rounded-xl border border-ink-700 bg-ink-850 p-3">
+            <h3 className="text-xs font-medium uppercase tracking-wide text-ink-400">
+              {t('editor:audio.info')}
+            </h3>
+            <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+              <Info label={t('editor:audio.infoDuration')}
+                value={formatDuration(buffer.duration, i18n.language)} />
+              <Info label={t('editor:audio.infoChannels')}
+                value={buffer.numberOfChannels > 1
+                  ? t('editor:audio.infoStereo')
+                  : t('editor:audio.infoMono')} />
+              <Info label={t('editor:audio.infoRate')}
+                value={`${Math.round(buffer.sampleRate / 1000)} kHz`} />
+              <Info label={t('editor:audio.infoSize')}
+                value={`${Math.round(asset.bytes / 1024)} Ko`} />
+            </dl>
+          </section>
+        )}
+
+        {/* --- Lecture --- */}
+        {selected && asset && (
+          <section className="flex items-center justify-center gap-2 rounded-xl border border-ink-700 bg-ink-850 p-2">
+            <button
+              type="button"
+              onClick={() => setTime(Math.max(0, currentTime - 5))}
+              aria-label={t('editor:transport.previousClip')}
+              className="flex size-11 items-center justify-center rounded-lg text-ink-200 active:bg-ink-800 [&>svg]:size-4"
+            >
+              <SkipBackIcon />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void audioContext.resume();
+                setPlaying(!isPlaying);
+              }}
+              aria-label={isPlaying ? t('editor:audio.pauseSelection') : t('editor:audio.playSelection')}
+              className="flex size-14 items-center justify-center rounded-full bg-audio-400/15 text-audio-400 active:bg-audio-400/25 [&>svg]:size-6"
+            >
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTime(currentTime + 5)}
+              aria-label={t('editor:transport.nextClip')}
+              className="flex size-11 items-center justify-center rounded-lg text-ink-200 active:bg-ink-800 [&>svg]:size-4"
+            >
+              <SkipForwardIcon />
+            </button>
+
+            {/* Vitesse: le meme cycle que l'apercu video, pour ne pas inventer
+                un second vocabulaire. */}
+            <button
+              type="button"
+              onClick={() => {
+                const steps = [1, 0.5, 0.25, 2];
+                const index = steps.indexOf(rate);
+                setRate(steps[(index + 1) % steps.length] ?? 1);
+              }}
+              aria-label={t('editor:audio.speed')}
+              className={[
+                'tnum min-h-11 rounded-lg border px-2.5 text-xs font-semibold',
+                rate === 1 ? 'border-ink-600 text-ink-300' : 'border-audio-400 text-audio-400',
+              ].join(' ')}
+            >
+              {formatRate(rate, i18n.language)}
+            </button>
+          </section>
+        )}
+
         {/* --- Montage de la piste selectionnee --- */}
         {selected && asset ? (
           <AudioEditor track={selected} asset={asset} />
@@ -316,5 +403,15 @@ export function AudioStudio({ onClose }: { onClose: () => void }) {
         }}
       />
     </div>
+  );
+}
+
+/** Une ligne du tableau d'informations. */
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <>
+      <dt className="text-ink-400">{label}</dt>
+      <dd className="tnum text-right text-ink-100">{value}</dd>
+    </>
   );
 }

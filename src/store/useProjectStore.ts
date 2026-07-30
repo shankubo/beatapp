@@ -46,6 +46,8 @@ import {
 } from '../domain/timeline';
 import {
   removeRange,
+  duplicateSegment,
+  moveSegment,
   removeSegment,
   trackDuration,
   setTrackRange,
@@ -183,6 +185,10 @@ interface ProjectState {
   removeAudioRange: (trackId: Id, from: Seconds, to: Seconds) => void;
   /** Pose une frontiere de decoupe sans rien retirer. */
   splitAudio: (trackId: Id, at: Seconds) => void;
+  /** Duplique un passage et pose la copie juste apres l'original. */
+  duplicateAudioSegment: (trackId: Id, segmentId: Id) => void;
+  /** Deplace un passage d'un rang dans l'ordre de lecture. */
+  moveAudioSegment: (trackId: Id, segmentId: Id, direction: -1 | 1) => void;
   /**
    * Coupe TOUT ce que la tete de lecture traverse: le plan et chaque piste
    * audio.
@@ -1107,6 +1113,55 @@ export const useProjectStore = create<ProjectState>()(
             splitAt(track, at, duration),
           ),
         })),
+
+      /*
+        Ces deux actions n'utilisent PAS `editAudioTrack`.
+
+        Ce dernier passe par `applySegments`, donc par la normalisation: elle
+        trie par borne source et fusionne les recouvrements, ce qui effacerait
+        une copie et annulerait un deplacement. L'ordre des segments est ici
+        l'ordre de LECTURE, il ne se recalcule pas.
+
+        Le verrou de piste reste verifie a la main, puisqu'on court-circuite le
+        point de passage qui s'en chargeait.
+      */
+      duplicateAudioSegment: (trackId, segmentId) =>
+        set((state) => {
+          if (isAudioLocked(state.project, trackId)) return state;
+          const track = state.project.audioTracks.find((entry) => entry.id === trackId);
+          if (!track) return state;
+
+          const updated = duplicateSegment(track, segmentId);
+          if (updated === track) return state;
+
+          return {
+            project: touched({
+              ...state.project,
+              audioTracks: state.project.audioTracks.map((entry) =>
+                entry.id === trackId ? updated : entry,
+              ),
+            }),
+          };
+        }),
+
+      moveAudioSegment: (trackId, segmentId, direction) =>
+        set((state) => {
+          if (isAudioLocked(state.project, trackId)) return state;
+          const track = state.project.audioTracks.find((entry) => entry.id === trackId);
+          if (!track) return state;
+
+          const updated = moveSegment(track, segmentId, direction);
+          if (updated === track) return state;
+
+          return {
+            project: touched({
+              ...state.project,
+              audioTracks: state.project.audioTracks.map((entry) =>
+                entry.id === trackId ? updated : entry,
+              ),
+            }),
+          };
+        }),
 
       removeAudioSegment: (trackId, segmentId, options) =>
         set((state) => ({
