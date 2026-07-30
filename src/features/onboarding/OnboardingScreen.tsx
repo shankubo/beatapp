@@ -179,7 +179,7 @@ export function OnboardingScreen({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col bg-ink-950">
-      <header className="safe-pt flex h-appbar shrink-0 items-center justify-between border-b border-ink-700 px-4">
+      <header className="appbar-top flex shrink-0 items-center justify-between border-b border-ink-700 px-4">
         <h2 className="text-sm font-semibold text-ink-50">{t('editor:onboarding.title')}</h2>
         {/* Pendant une operation, « Passer » disparait: un resultat qui
             atterrirait sur un editeur deja quitte serait deroutant. */}

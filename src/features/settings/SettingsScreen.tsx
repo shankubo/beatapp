@@ -226,7 +226,7 @@ export function SettingsScreen({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col bg-ink-950">
-      <header className="safe-pt flex h-appbar shrink-0 items-center justify-between border-b border-ink-700 pl-4 pr-1">
+      <header className="appbar-top flex shrink-0 items-center justify-between border-b border-ink-700 pl-4 pr-1">
         <h2 className="text-sm font-semibold text-ink-50">{t('settings:title')}</h2>
         <IconButton label={t('common:action.close')} onClick={onClose} size="sm">
           <CloseIcon />

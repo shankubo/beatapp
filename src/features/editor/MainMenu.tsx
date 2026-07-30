@@ -125,7 +125,7 @@ export function MainMenu({ onClose }: { onClose: () => void }) {
         */
         className="surface flex w-[86%] max-w-sm flex-col border-r border-ink-700 bg-ink-900"
       >
-        <header className="safe-pt flex h-appbar shrink-0 items-center justify-between border-b border-ink-700 pl-4 pr-1">
+        <header className="appbar-top flex shrink-0 items-center justify-between border-b border-ink-700 pl-4 pr-1">
           <h2 className="text-sm font-semibold text-ink-50">{t('menu:title')}</h2>
           <IconButton label={t('common:action.close')} onClick={onClose} size="sm">
             <CloseIcon />

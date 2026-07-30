@@ -165,6 +165,24 @@
   padding-top: var(--safe-top);
 }
 
+/**
+ * Bandeau de tete d'un ecran plein: hauteur de barre PLUS la zone sure.
+ *
+ * Bug mesure sur iPhone (encoche): `safe-pt` + `h-appbar` se combinaient mal.
+ * `h-appbar` fige la hauteur totale a 44 px, et le `padding-top` de la zone
+ * sure se prenait DEDANS au lieu de s'y ajouter — il ne restait qu'une dizaine
+ * de pixels au contenu, et le titre comme le bouton « Passer » sortaient sous
+ * la barre d'etat.
+ *
+ * `height` additionne donc explicitement les deux. `box-sizing: border-box`
+ * etant la regle de Tailwind, le padding reste inclus dans cette hauteur et le
+ * contenu occupe exactement les 44 px sous l'encoche.
+ */
+@utility appbar-top {
+  padding-top: var(--safe-top);
+  height: calc(var(--spacing-appbar) + var(--safe-top));
+}
+
 @utility safe-pb {
   padding-bottom: var(--safe-bottom);
 }

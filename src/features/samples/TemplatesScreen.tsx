@@ -28,7 +28,7 @@ export function TemplatesScreen({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col bg-ink-950">
-      <header className="safe-pt flex h-appbar shrink-0 items-center justify-between gap-1 border-b border-ink-700 pl-1 pr-1">
+      <header className="appbar-top flex shrink-0 items-center justify-between gap-1 border-b border-ink-700 pl-1 pr-1">
         {/*
           Le retour remplace le titre quand un modele est ouvert: sur 390 px, un
           titre plus une fleche plus une croix saturent la barre.
