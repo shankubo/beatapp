@@ -31,7 +31,7 @@ import {
   type TextPreset,
   type TextStyle,
 } from './types';
-import { appendClip, ripple } from './timeline';
+import { appendClip, insertClip, ripple } from './timeline';
 import { newId } from '../lib/id';
 import { clamp } from '../lib/math';
 
@@ -530,13 +530,27 @@ export function addAsset(project: Project, asset: MediaAsset): Project {
 export function appendAssetToTimeline(
   project: Project,
   asset: MediaAsset,
-  options?: { slideDuration?: Seconds; maxVideoDuration?: Seconds },
+  options?: {
+    slideDuration?: Seconds;
+    maxVideoDuration?: Seconds;
+    /**
+     * Rang d'insertion. Omis, le plan est ajoute a la FIN.
+     *
+     * L'appelant le derive de la tete de lecture: le domaine reste pur et ne
+     * connait pas la position de lecture.
+     */
+    index?: number;
+  },
 ): Project {
   const withAsset = project.assets[asset.id] ? project : addAsset(project, asset);
   const clip = createClipForAsset(asset, options);
+  const track = withAsset.videoTrack;
   return {
     ...withAsset,
-    videoTrack: appendClip(withAsset.videoTrack, clip, project.frame.fps),
+    videoTrack:
+      options?.index === undefined
+        ? appendClip(track, clip, project.frame.fps)
+        : insertClip(track, clip, options.index, project.frame.fps),
     updatedAt: Date.now(),
   };
 }

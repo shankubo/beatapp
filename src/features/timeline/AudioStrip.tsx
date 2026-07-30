@@ -87,8 +87,18 @@ export function AudioStrip({ geometry, centerTime }: AudioStripProps) {
       {tracks.map((track, index) => (
         <div
           key={`${track.id}_controls`}
-          className="absolute inset-x-0"
-          style={{ top: index * LANE_H, height: LANE_H }}
+          /*
+            Largeur BORNEE a la colonne de tete.
+
+            Bug mesure: `inset-x-0` etirait ce conteneur sur toute la largeur,
+            par-dessus les blocs audio. `elementFromPoint` renvoyait donc lui et
+            non le bloc, sur TOUTE sa longueur: aucun `pointerdown` n'atteignait
+            jamais un segment, et un appui n'ouvrait pas le panneau Audio. Seuls
+            le cadenas et l'aimant ont besoin de place, et ils tiennent dans
+            `CONTROLS_W`.
+          */
+          className="absolute left-0"
+          style={{ top: index * LANE_H, height: LANE_H, width: CONTROLS_W }}
         >
           <TrackControls
             locked={track.locked === true}
@@ -153,14 +163,14 @@ function AudioLane({
   // Position au debut du geste: sans elle, les deltas s'accumuleraient sur une
   // valeur deja modifiee et la piste filerait.
   const originStart = useRef(track.start);
+  /** Point de contact, pour distinguer un appui d'un glissement. */
+  const tapOrigin = useRef<{ x: number; y: number } | null>(null);
 
   const bind = useDrag(
     ({ first, last, movement: [mx], tap, event }) => {
-      if (tap) {
-        setTime(track.start);
-        openTab('audio');
-        return;
-      }
+      // Le tap est traite par `onPointerUp` (voir plus bas): avec `axis: 'x'`,
+      // `useDrag` ne le reconnait jamais.
+      if (tap) return;
 
       if (first) {
         useProjectStore.temporal.getState().pause();
@@ -240,6 +250,34 @@ function AudioLane({
           <div
             key={`${track.id}_${index}`}
             {...bind()}
+            /*
+              Ouverture du panneau Audio au TAP, gerée ici et non par `useDrag`.
+
+              Bug mesure: avec `axis: 'x'`, le recogniseur n'etablit jamais de
+              direction pour un appui immobile, donc son drapeau `tap` restait
+              faux et le panneau ne s'ouvrait pas — alors que le meme geste au
+              clavier (Entree) fonctionnait, ce qui a localise la panne dans le
+              geste et non dans l'action.
+
+              `onPointerUp` et un seuil de deplacement plutot que `onClick`: le
+              scrub de la timeline consomme le clic de synthese, comme ailleurs
+              dans ce fichier.
+            */
+            onPointerDown={(event) => {
+              tapOrigin.current = { x: event.clientX, y: event.clientY };
+            }}
+            onPointerUp={(event) => {
+              const origin = tapOrigin.current;
+              if (!origin) return;
+              tapOrigin.current = null;
+              const dx = Math.abs(event.clientX - origin.x);
+              const dy = Math.abs(event.clientY - origin.y);
+              // Au-dela de quelques pixels, c'etait un glissement: on ne veut
+              // pas ouvrir un panneau a la fin d'un deplacement de piste.
+              if (dx > 8 || dy > 8) return;
+              setTime(track.start);
+              openTab('audio');
+            }}
             role="button"
             tabIndex={0}
             aria-label={

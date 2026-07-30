@@ -63,6 +63,9 @@ import {
 } from '../domain/snapping';
 import { ASPECT_RATIOS, clampFrameSide } from '../domain/types';
 import { usePreferencesStore } from './usePreferencesStore';
+// Lecture SEULE de la position courante, via getState: aucun abonnement, donc
+// pas de cycle de rendu entre les deux stores.
+import { usePlaybackStore } from './usePlaybackStore';
 import type {
   AspectRatioId,
   BeatDivision,
@@ -115,15 +118,19 @@ interface ProjectState {
   // --- Medias
   addAsset: (asset: MediaAsset) => void;
   /**
-   * Ajoute un media a la fin du montage, en lui appliquant les preferences
-   * d'import (cadrage, redressement, zoom, recentrage).
+   * Ajoute un media au montage, en lui appliquant les preferences d'import
+   * (cadrage, redressement, zoom, recentrage).
+   *
+   * Le plan se pose APRES celui que la tete de lecture traverse. Hors de tout
+   * plan — piste vide, ou tete au-dela du dernier — il est ajoute a la fin.
+   * `index` force explicitement le rang, pour un appelant qui sait mieux.
    *
    * `focal` est la zone d'interet mesuree par l'appelant: le domaine reste pur et
    * n'analyse aucun pixel lui-meme.
    */
   addAssetToTimeline: (
     asset: MediaAsset,
-    options?: { slideDuration?: Seconds; focal?: FocalPoint },
+    options?: { slideDuration?: Seconds; focal?: FocalPoint; index?: number },
   ) => void;
   removeAsset: (assetId: Id) => void;
 
@@ -348,6 +355,15 @@ function currentGrid(project: Project): Seconds[] {
   toujours un geste d'interface, et une exception y serait ingerable.
 */
 
+/**
+ * Ou s'est pose le dernier plan importe, pour enchainer un lot.
+ *
+ * HORS du store a dessein: c'est un detail d'enchainement entre deux appels
+ * successifs, pas un etat du projet. L'y mettre le ferait entrer dans
+ * l'historique d'annulation et dans l'enregistrement automatique.
+ */
+let lastInsert: { index: number; clipCount: number; time: number } | null = null;
+
 /** La piste image est-elle verrouillee ? */
 function isVideoLocked(project: Project): boolean {
   return project.videoTrack.locked === true;
@@ -427,10 +443,65 @@ export const useProjectStore = create<ProjectState>()(
 
       addAssetToTimeline: (asset, options) =>
         set((state) => {
-          const project = appendAssetToTimeline(state.project, asset, options);
+          if (isVideoLocked(state.project)) return state;
 
           /*
-            Les preferences d'import s'appliquent ICI, sur le dernier plan ajoute.
+            Rang d'insertion derive de la TETE DE LECTURE.
+
+            Bug corrige: tout import atterrissait en fin de piste, quelle que
+            soit la position du trait. Poser un plan au milieu d'un montage
+            imposait donc de l'ajouter puis de le remonter a la main, coupure
+            par coupure.
+
+            La regle est celle d'un logiciel de montage: le nouveau plan se pose
+            APRES celui que la tete traverse. Hors de tout plan — piste vide, ou
+            tete au-dela du dernier — on retombe sur l'ajout en fin.
+          */
+          /*
+            Rang d'insertion, avec REPRISE pour les lots.
+
+            Piege attrape par les tests: un import multiple boucle sur cette
+            action sans deplacer la tete de lecture. En rederivant le rang a
+            chaque appel, les trois fichiers d'un lot visaient tous le meme
+            emplacement et arrivaient donc a l'envers — mesure: `3, 2, 1`.
+
+            `lastInsert` retient donc ou s'est pose le plan precedent, et l'appel
+            suivant enchaine juste apres. Le repere est abandonne des que la
+            piste change par un autre chemin (`clipCount`), pour qu'un import
+            fait bien plus tard reparte de la tete de lecture.
+          */
+          const time = usePlaybackStore.getState().time;
+          const clipCount = state.project.videoTrack.clips.length;
+
+          /*
+            La chaine n'est valable que si RIEN n'a bouge depuis l'appel
+            precedent: ni le nombre de plans, ni la tete de lecture.
+
+            Le compte seul ne suffisait pas. Apres avoir construit trois plans,
+            le repere valait `{index: 3, clipCount: 3}` — ce qui correspondait
+            encore au projet, si bien qu'un import fait PLUS TARD, tete deplacee
+            au milieu, continuait d'ajouter a la fin. Retenir aussi le temps
+            distingue la boucle d'un lot (tete immobile) d'un import ulterieur.
+          */
+          const chained =
+            lastInsert !== null &&
+            lastInsert.clipCount === clipCount &&
+            lastInsert.time === time
+              ? lastInsert.index
+              : null;
+
+          const at = clipIndexAt(state.project.videoTrack, time);
+          const index =
+            options?.index ?? chained ?? (at >= 0 ? at + 1 : undefined);
+
+          const project = appendAssetToTimeline(state.project, asset, {
+            ...options,
+            index,
+          });
+
+          /*
+            Les preferences d'import s'appliquent ICI, sur le plan qui vient
+            d'etre ajoute.
 
             C'est le point de passage unique des imports — un fichier isole comme
             un lot de trente — donc le seul endroit ou le reglage a besoin d'etre
@@ -439,11 +510,13 @@ export const useProjectStore = create<ProjectState>()(
           */
           const preferences = usePreferencesStore.getState().importPreferences;
           const clips = project.videoTrack.clips;
-          const last = clips[clips.length - 1];
-          if (!last) return { project };
+          // Le plan ajoute n'est plus forcement le dernier: on vise son rang.
+          const position = index === undefined ? clips.length - 1 : Math.min(index, clips.length - 1);
+          const added = clips[position];
+          if (!added) return { project };
 
           const framed = applyImportPreferences(
-            last,
+            added,
             asset.width !== undefined && asset.height !== undefined
               ? { width: asset.width, height: asset.height }
               : undefined,
@@ -452,12 +525,24 @@ export const useProjectStore = create<ProjectState>()(
             options?.focal,
           );
 
+          /*
+            Repere pour l'appel suivant du meme lot.
+
+            `clipCount` est le nombre de plans APRES cette insertion — donc
+            exactement ce que le prochain appel lira AVANT la sienne. L'egalite
+            prouve alors que personne n'a touche la piste entre les deux, et le
+            lot peut enchainer. Retenir le compte d'avant les rendait toujours
+            differents d'une unite: la chaine ne se formait jamais et les
+            fichiers repartaient a l'envers.
+          */
+          lastInsert = { index: position + 1, clipCount: clips.length, time };
+
           return {
             project: {
               ...project,
               videoTrack: {
                 ...project.videoTrack,
-                clips: [...clips.slice(0, -1), framed],
+                clips: clips.map((clip, i) => (i === position ? framed : clip)),
               },
             },
           };

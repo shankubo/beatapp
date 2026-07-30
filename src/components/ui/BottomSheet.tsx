@@ -10,7 +10,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useDrag } from '@use-gesture/react';
 
-import { IconButton } from './IconButton';
 import { CloseIcon } from './icons';
 import type { SheetSnap } from '../../store/useUiStore';
 
@@ -86,9 +85,24 @@ export function BottomSheet({
           <span aria-hidden="true" className="h-1 w-9 rounded-full bg-ink-600" />
           <h2 className="text-sm font-semibold tracking-tight text-ink-50">{title}</h2>
         </div>
-        <IconButton label={closeLabel} onClick={onClose} size="sm">
-          <CloseIcon />
-        </IconButton>
+        {/*
+          Croix sur pastille pleine, et non l'icone nue des commandes flottantes.
+
+          Ici le fond est opaque et non une image: le contraste n'est pas en
+          jeu, la VISIBILITE l'est. Posee nue en bout de bandeau, la croix se
+          confondait avec les icones du rail juste derriere elle. La pastille la
+          detache de tout ce qui l'entoure et donne une cible franche.
+        */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={closeLabel}
+          className="mr-1 flex size-11 shrink-0 items-center justify-center rounded-full text-ink-200 active:bg-ink-700 [&>svg]:size-4"
+        >
+          <span className="flex size-7 items-center justify-center rounded-full bg-ink-700 [&>svg]:size-3.5">
+            <CloseIcon />
+          </span>
+        </button>
       </div>
 
       <div

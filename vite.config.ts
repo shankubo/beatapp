@@ -35,7 +35,17 @@ export default defineConfig({
       // une version perimee. Ici la nouvelle version prend effet au prochain
       // chargement, ce qui est le comportement attendu d'une application web.
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png'],
+      /*
+        Seules les icones REELLEMENT servies a l'execution.
+
+        `icons/*.png` embarquait les 4,8 Mo du dossier, dont personne n'affiche
+        la moitie: `logo_bg.png` (757 Ko) n'est que la source du generateur,
+        `icon-1024.png` (625 Ko, en double iOS/Android) sert aux fiches des
+        magasins d'applications, et `logo_text.png` (237 Ko) est l'ancien logo
+        remplace depuis. Mesure: la premiere visite peignait a 1637 ms alors que
+        le reseau avait tout livre en 140 ms — c'est le precache qui bloquait.
+      */
+      includeAssets: [],
       manifest: {
         name: 'Beatapp',
         short_name: 'Beatapp',
@@ -74,10 +84,18 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2}', 'icons/icon-*.png', 'steps/*.webp'],
+        // Les PNG ne sont PLUS pris en masse: le motif generique ramassait
+        // `icons/generated/` — les jeux d'icones iOS, Android et Windows
+        // produits pour les magasins d'applications, jamais demandes par le
+        // navigateur. Seules restent `icon-*.png`, les trois icones du
+        // manifeste (192, 512, maskable-512).
+        //
+        // Les vignettes `steps/*.webp` restent precachees: elles s'affichent
+        // sur le premier ecran et pesent 211 Ko a elles toutes.
         // Les medias utilisateur vivent dans IndexedDB/OPFS, jamais dans le cache Workbox.
         // Les samples audio sont volumineux et charges a la demande: on les exclut du precache.
-        globIgnores: ['**/samples/audio/**'],
+        globIgnores: ['**/samples/audio/**', '**/icons/generated/**'],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         // Prefixe par la base: un repli sur `/index.html` servirait la racine du
         // domaine, qui n'appartient pas a l'application sous un sous-chemin.

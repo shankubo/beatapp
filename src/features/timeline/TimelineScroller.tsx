@@ -336,7 +336,11 @@ export function TimelineScroller() {
         eux-memes pour qu'ils restent cliquables.
       */}
       <div
-        className="pointer-events-none absolute bottom-1 right-1 z-10 flex items-center gap-0.5"
+        // En HAUT et non en bas: pose sur `bottom-1`, le groupe de zoom couvrait
+        // la derniere piste audio et interceptait les appuis destines a ses
+        // blocs. La regle occupe le haut de la timeline et ne porte aucun geste
+        // de bloc, donc rien n'y est masque.
+        className="pointer-events-none absolute right-1 top-1 z-10 flex items-center gap-0.5"
         // Meme isolation que la colonne de commandes: sans elle, le scrub prend
         // le pointeur au `pointerdown` et les boutons de zoom ne recoivent
         // jamais leur clic a la souris.

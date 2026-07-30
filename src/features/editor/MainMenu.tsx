@@ -110,20 +110,20 @@ export function MainMenu({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="absolute inset-0 z-40 flex">
-      {/* Voile: fermer en touchant a cote est le geste attendu d'une feuille. */}
-      <button
-        type="button"
-        aria-label={t('common:action.close')}
-        onClick={onClose}
-        className="flex-1 bg-ink-950/70 backdrop-blur-[2px]"
-      />
-
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={t('menu:title')}
-        className="surface flex w-[86%] max-w-sm flex-col border-l border-ink-700 bg-ink-900"
+        /*
+          Panneau a GAUCHE, du meme cote que le bouton qui l'ouvre.
+
+          Il sortait de la droite alors que le hamburger est en haut a gauche:
+          le panneau semblait venir d'ailleurs, et la main qui vient d'appuyer
+          se retrouvait du mauvais cote de l'ecran. Un menu s'ouvre depuis son
+          declencheur.
+        */
+        className="surface flex w-[86%] max-w-sm flex-col border-r border-ink-700 bg-ink-900"
       >
         <header className="safe-pt flex h-appbar shrink-0 items-center justify-between border-b border-ink-700 pl-4 pr-1">
           <h2 className="text-sm font-semibold text-ink-50">{t('menu:title')}</h2>
@@ -313,6 +313,15 @@ export function MainMenu({ onClose }: { onClose: () => void }) {
           </Section>
         </div>
       </div>
+
+      {/* Voile: fermer en touchant a cote est le geste attendu d'une feuille.
+          Pose APRES le panneau, il occupe l'espace restant a sa droite. */}
+      <button
+        type="button"
+        aria-label={t('common:action.close')}
+        onClick={onClose}
+        className="flex-1 bg-ink-950/70 backdrop-blur-[2px]"
+      />
 
       <ConfirmDialog
         open={confirmingNew}

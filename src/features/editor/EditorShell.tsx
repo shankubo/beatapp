@@ -161,14 +161,45 @@ export function EditorShell() {
         haut, celle de transport et les onglets pesaient ensemble 144 px, sur
         l'axe meme qui contraint un apercu 9:16.
       */}
-      <main className={['relative flex min-h-0 flex-1 flex-col', fullscreen ? 'bg-black' : ''].join(' ')}>
+      {/*
+        L'apercu se REDUIT quand un panneau s'ouvre, au lieu d'etre recouvert.
+
+        Bug mesure: le panneau est pose en absolu par-dessus l'apercu. A 58 % de
+        hauteur il n'en laissait qu'un bandeau, si bien qu'on reglait un zoom ou
+        un filtre en ne voyant qu'une tranche de l'image — precisement ce qu'on
+        essaie de juger. En bornant la hauteur de l'apercu a l'espace restant,
+        le cadre entier reste visible, simplement plus petit.
+
+        `maxHeight` et non `height`: hors panneau, l'apercu doit continuer a
+        prendre toute la place disponible.
+      */}
+      <main
+        className={[
+          'relative flex min-h-0 flex-1 flex-col transition-[max-height] duration-200 ease-out',
+          fullscreen ? 'bg-black' : '',
+        ].join(' ')}
+        style={
+          sheetOpen && !fullscreen
+            ? { maxHeight: `calc(100% - ${SHEET_HEIGHT[sheetSnap]})` }
+            : undefined
+        }
+      >
         <PreviewCanvas />
 
         {/* En plein ecran, seule la lecture subsiste: le reste ferait revenir
             le decor qu'on vient justement de retirer. */}
         {!fullscreen && <FloatingBar />}
         <PreviewControls />
-        {!fullscreen && <ToolRail />}
+        {/*
+          Le rail s'efface quand un panneau est ouvert.
+
+          Piege mesure: le rail est colle au bord droit, exactement ou le
+          panneau pose sa croix de fermeture — les deux se superposaient, et la
+          croix devenait difficile a viser. Le rail ne sert de toute facon a
+          rien pendant qu'on travaille dans un panneau: on en change par la
+          croix ou par le menu.
+        */}
+        {!fullscreen && !sheetOpen && <ToolRail />}
       </main>
 
       {/* La timeline s'efface sous un panneau haut: la laisser depasser a
