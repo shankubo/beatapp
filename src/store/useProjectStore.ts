@@ -302,6 +302,18 @@ function editAudioTrack(
   if (index < 0) return project;
 
   const track = project.audioTracks[index]!;
+
+  /*
+    Verrou de la piste, controle ICI et non chez chaque appelant.
+
+    Quatre actions passent par cette fonction (`setAudioRange`,
+    `removeAudioRange`, `splitAudio`, `removeAudioSegment`, `updateAudioSegment`)
+    et aucune ne verifiait le cadenas. Le poser au point de passage plutot qu'a
+    chaque appel garantit qu'une action ajoutee plus tard sera protegee sans
+    qu'on ait a y penser.
+  */
+  if (track.locked === true) return project;
+
   const asset = project.assets[track.assetId];
   // Sans duree connue, on ne peut pas borner: l'operation est refusee plutot que
   // d'ecrire des bornes fausses.
@@ -320,6 +332,35 @@ function editAudioTrack(
 function currentGrid(project: Project): Seconds[] {
   if (!project.beatMap) return [];
   return timelineGrid(project.beatMap, musicTrack(project), project.snapping.division);
+}
+
+/*
+  Verrous de piste, regroupes ici.
+
+  BUG CORRIGE: le cadenas ne protegeait qu'une poignee d'actions
+  (`removeClip`, `splitAtPlayhead`, `removeText`). Tout le reste passait au
+  travers — deplacer un plan, le rogner, changer sa duree, le dupliquer, poser
+  un filtre, supprimer une piste audio ou un segment… Un cadenas qui n'empeche
+  qu'un dixieme des modifications est pire qu'aucun cadenas: il promet une
+  protection qu'il n'assure pas.
+
+  On refuse en SILENCE (etat inchange) plutot qu'en levant: l'appelant est
+  toujours un geste d'interface, et une exception y serait ingerable.
+*/
+
+/** La piste image est-elle verrouillee ? */
+function isVideoLocked(project: Project): boolean {
+  return project.videoTrack.locked === true;
+}
+
+/** La piste texte est-elle verrouillee ? */
+function isTextLocked(project: Project): boolean {
+  return project.textTrack?.locked === true;
+}
+
+/** La piste audio `trackId` est-elle verrouillee ? */
+function isAudioLocked(project: Project, trackId: Id): boolean {
+  return project.audioTracks.find((track) => track.id === trackId)?.locked === true;
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -566,55 +607,77 @@ export const useProjectStore = create<ProjectState>()(
         })),
 
       moveClip: (from, to) =>
-        set((state) => ({
-          project: touched({
-            ...state.project,
-            videoTrack: moveClip(state.project.videoTrack, from, to, state.project.frame.fps),
-          }),
-        })),
+        set((state) =>
+          isVideoLocked(state.project)
+            ? state
+            : {
+                project: touched({
+                  ...state.project,
+                  videoTrack: moveClip(
+                    state.project.videoTrack,
+                    from,
+                    to,
+                    state.project.frame.fps,
+                  ),
+                }),
+              },
+        ),
 
       setClipDuration: (clipId, duration) =>
-        set((state) => ({
-          project: touched({
-            ...state.project,
-            videoTrack: setClipDuration(
-              state.project.videoTrack,
-              clipId,
-              duration,
-              state.project.frame.fps,
-            ),
-          }),
-        })),
+        set((state) =>
+          isVideoLocked(state.project)
+            ? state
+            : {
+                project: touched({
+                  ...state.project,
+                  videoTrack: setClipDuration(
+                    state.project.videoTrack,
+                    clipId,
+                    duration,
+                    state.project.frame.fps,
+                  ),
+                }),
+              },
+        ),
 
       trimStart: (clipId, delta) =>
-        set((state) => ({
-          project: touched({
-            ...state.project,
-            videoTrack: trimClipStart(
-              state.project.videoTrack,
-              clipId,
-              delta,
-              state.project.frame.fps,
-            ),
-          }),
-        })),
+        set((state) =>
+          isVideoLocked(state.project)
+            ? state
+            : {
+                project: touched({
+                  ...state.project,
+                  videoTrack: trimClipStart(
+                    state.project.videoTrack,
+                    clipId,
+                    delta,
+                    state.project.frame.fps,
+                  ),
+                }),
+              },
+        ),
 
       trimEnd: (clipId, delta) =>
-        set((state) => ({
-          project: touched({
-            ...state.project,
-            videoTrack: trimClipEnd(
-              state.project.videoTrack,
-              clipId,
-              delta,
-              state.project.frame.fps,
-            ),
-          }),
-        })),
+        set((state) =>
+          isVideoLocked(state.project)
+            ? state
+            : {
+                project: touched({
+                  ...state.project,
+                  videoTrack: trimClipEnd(
+                    state.project.videoTrack,
+                    clipId,
+                    delta,
+                    state.project.frame.fps,
+                  ),
+                }),
+              },
+        ),
 
       updateClip: (clipId, patch) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isVideoLocked(draft.project)) return;
             const clip = draft.project.videoTrack.clips.find((c) => c.id === clipId);
             if (!clip) return;
             Object.assign(clip, patch);
@@ -631,6 +694,8 @@ export const useProjectStore = create<ProjectState>()(
        */
       replaceClipAsset: (clipId, asset) =>
         set((state) => {
+          if (isVideoLocked(state.project)) return state;
+
           const withAsset = state.project.assets[asset.id]
             ? state.project
             : addAsset(state.project, asset);
@@ -657,22 +722,27 @@ export const useProjectStore = create<ProjectState>()(
         }),
 
       duplicateClip: (clipId) =>
-        set((state) => ({
-          project: touched({
-            ...state.project,
-            videoTrack: duplicateClip(
-              state.project.videoTrack,
-              clipId,
-              // L'identifiant est fourni par le store: le domaine reste pur.
-              newId('clip'),
-              state.project.frame.fps,
-            ),
-          }),
-        })),
+        set((state) =>
+          isVideoLocked(state.project)
+            ? state
+            : {
+                project: touched({
+                  ...state.project,
+                  videoTrack: duplicateClip(
+                    state.project.videoTrack,
+                    clipId,
+                    // L'identifiant est fourni par le store: le domaine reste pur.
+                    newId('clip'),
+                    state.project.frame.fps,
+                  ),
+                }),
+              },
+        ),
 
       setClipFilter: (clipId, filter) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isVideoLocked(draft.project)) return;
             const clip = draft.project.videoTrack.clips.find((c) => c.id === clipId);
             if (!clip) return;
             clip.filter = filter;
@@ -683,6 +753,7 @@ export const useProjectStore = create<ProjectState>()(
       setFilterPreset: (clipId, preset) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isVideoLocked(draft.project)) return;
             const clip = draft.project.videoTrack.clips.find((c) => c.id === clipId);
             if (!clip) return;
             if (preset === 'none') {
@@ -798,6 +869,9 @@ export const useProjectStore = create<ProjectState>()(
       updateAudioTrack: (trackId, patch) =>
         set((state) =>
           produce(state, (draft) => {
+            // Le verrou lui-meme passe par `setAudioTrackFlags`: le bloquer ici
+            // n'empeche donc pas de deverrouiller la piste.
+            if (isAudioLocked(draft.project, trackId)) return;
             const track = draft.project.audioTracks.find((t) => t.id === trackId);
             if (!track) return;
             Object.assign(track, patch);
@@ -808,6 +882,7 @@ export const useProjectStore = create<ProjectState>()(
       removeAudioTrack: (trackId) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isAudioLocked(draft.project, trackId)) return;
             const removed = draft.project.audioTracks.find((t) => t.id === trackId);
             draft.project.audioTracks = draft.project.audioTracks.filter(
               (t) => t.id !== trackId,
@@ -818,18 +893,26 @@ export const useProjectStore = create<ProjectState>()(
         ),
 
       setAudioRange: (trackId, range) =>
-        set((state) => ({
-          project: editAudioTrack(state.project, trackId, (track, duration) =>
-            setTrackRange(track, range, duration),
-          ),
-        })),
+        set((state) =>
+          isAudioLocked(state.project, trackId)
+            ? state
+            : {
+                project: editAudioTrack(state.project, trackId, (track, duration) =>
+                  setTrackRange(track, range, duration),
+                ),
+              },
+        ),
 
       removeAudioRange: (trackId, from, to) =>
-        set((state) => ({
-          project: editAudioTrack(state.project, trackId, (track, duration) =>
-            removeRange(track, from, to, duration),
-          ),
-        })),
+        set((state) =>
+          isAudioLocked(state.project, trackId)
+            ? state
+            : {
+                project: editAudioTrack(state.project, trackId, (track, duration) =>
+                  removeRange(track, from, to, duration),
+                ),
+              },
+        ),
 
       splitAtPlayhead: (at) =>
         set((state) => {
@@ -957,6 +1040,7 @@ export const useProjectStore = create<ProjectState>()(
       setAudioOffset: (trackId, start) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isAudioLocked(draft.project, trackId)) return;
             const track = draft.project.audioTracks.find((t) => t.id === trackId);
             if (!track) return;
             // Un decalage negatif ferait commencer la musique avant le reel:
@@ -970,6 +1054,7 @@ export const useProjectStore = create<ProjectState>()(
         const overlay = createTextOverlay(text, options);
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             draft.project.overlays.push(overlay);
             draft.project.updatedAt = Date.now();
           }),
@@ -980,6 +1065,7 @@ export const useProjectStore = create<ProjectState>()(
       updateText: (overlayId, patch) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             const overlay = draft.project.overlays.find((o) => o.id === overlayId);
             if (!overlay) return;
             Object.assign(overlay, patch);
@@ -991,6 +1077,7 @@ export const useProjectStore = create<ProjectState>()(
         const mask = createTextMask(text, options);
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             // `textMasks` est optionnel: un projet enregistre avant les masques
             // n'en a pas, et le lire sans le creer laisserait le push sans cible.
             draft.project.textMasks = [...(draft.project.textMasks ?? []), mask];
@@ -1003,6 +1090,7 @@ export const useProjectStore = create<ProjectState>()(
       updateTextMask: (maskId, patch) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             const mask = draft.project.textMasks?.find((m) => m.id === maskId);
             if (!mask) return;
             Object.assign(mask, patch);
@@ -1013,6 +1101,7 @@ export const useProjectStore = create<ProjectState>()(
       removeTextMask: (maskId) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             if (!draft.project.textMasks) return;
             draft.project.textMasks = draft.project.textMasks.filter((m) => m.id !== maskId);
             draft.project.updatedAt = Date.now();
@@ -1022,6 +1111,7 @@ export const useProjectStore = create<ProjectState>()(
       setTextPreset: (overlayId, preset) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             const overlay = draft.project.overlays.find((o) => o.id === overlayId);
             if (!overlay) return;
             // Le preset redefinit le style mais conserve la couleur choisie.
@@ -1073,6 +1163,7 @@ export const useProjectStore = create<ProjectState>()(
       setTextFont: (overlayId, font) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             const overlay = draft.project.overlays.find((o) => o.id === overlayId);
             if (!overlay) return;
             overlay.style = withFont(overlay.style, font);
@@ -1089,6 +1180,9 @@ export const useProjectStore = create<ProjectState>()(
        */
       setLyricsFromText: (raw, options) => {
         const { project } = get();
+        // Ces actions ecrivent via `set` sans passer par `produce`: la garde
+        // doit donc etre posee explicitement ici.
+        if (isTextLocked(project)) return;
         const texts = parseLyricLines(raw);
         const base = completeLyrics(project.lyrics ?? createLyrics());
 
@@ -1108,6 +1202,9 @@ export const useProjectStore = create<ProjectState>()(
 
       setLyricsLines: (lines) => {
         const { project } = get();
+        // Ces actions ecrivent via `set` sans passer par `produce`: la garde
+        // doit donc etre posee explicitement ici.
+        if (isTextLocked(project)) return;
         const base = completeLyrics(project.lyrics ?? createLyrics());
 
         if (lines.length === 0) {
@@ -1122,6 +1219,7 @@ export const useProjectStore = create<ProjectState>()(
       updateLyrics: (patch) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             if (!draft.project.lyrics) return;
             Object.assign(draft.project.lyrics, patch);
             draft.project.updatedAt = Date.now();
@@ -1141,6 +1239,7 @@ export const useProjectStore = create<ProjectState>()(
       updateLyricLine: (lineId, patch) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             const line = draft.project.lyrics?.lines.find((l) => l.id === lineId);
             if (!line) return;
             Object.assign(line, patch);
@@ -1151,6 +1250,7 @@ export const useProjectStore = create<ProjectState>()(
       removeLyricLine: (lineId) =>
         set((state) =>
           produce(state, (draft) => {
+            if (isTextLocked(draft.project)) return;
             const { lyrics } = draft.project;
             if (!lyrics) return;
             lyrics.lines = lyrics.lines.filter((line) => line.id !== lineId);
@@ -1164,6 +1264,7 @@ export const useProjectStore = create<ProjectState>()(
       /** Recale les lignes existantes: utile apres une nouvelle analyse rythmique. */
       realignLyrics: (options) => {
         const { project } = get();
+        if (isTextLocked(project)) return;
         if (!project.lyrics) return;
 
         const lines = alignLyricsToBeats(
@@ -1182,7 +1283,11 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       clearLyrics: () =>
-        set((state) => ({ project: touched({ ...state.project, lyrics: undefined }) })),
+        set((state) =>
+          isTextLocked(state.project)
+            ? state
+            : { project: touched({ ...state.project, lyrics: undefined }) },
+        ),
 
       setBeatMap: (beatMap) =>
         set((state) => ({ project: touched({ ...state.project, beatMap }) })),

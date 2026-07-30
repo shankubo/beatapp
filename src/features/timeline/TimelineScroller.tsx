@@ -355,9 +355,10 @@ export function TimelineScroller() {
           }}
           className={[
             'pointer-events-auto flex h-7 w-7 items-center justify-center',
-            'rounded-l-md border border-ink-600 bg-ink-900/90 text-sm font-bold',
-            'text-ink-300 backdrop-blur-sm transition-opacity active:bg-ink-700',
-            'disabled:cursor-not-allowed disabled:opacity-30',
+            // Sans cartouche ni bordure, comme les commandes de l'apercu.
+            'text-sm font-bold text-ink-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]',
+            'transition-opacity active:opacity-60',
+            'disabled:cursor-not-allowed disabled:opacity-25',
           ].join(' ')}
         >
           −
@@ -366,7 +367,7 @@ export function TimelineScroller() {
         {/* Pourcentage par rapport au zoom par defaut. */}
         <span
           aria-label={t('timeline.zoom')}
-          className="pointer-events-none flex h-7 min-w-[3rem] items-center justify-center border-y border-ink-600 bg-ink-900/90 px-1 text-[10px] font-medium tabular-nums text-ink-400 backdrop-blur-sm"
+          className="pointer-events-none flex h-7 min-w-[2.5rem] items-center justify-center px-1 text-[10px] font-medium tabular-nums text-ink-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
         >
           {Math.round((pxPerSecond / DEFAULT_PX_PER_SECOND) * 100)}%
         </span>
@@ -383,9 +384,10 @@ export function TimelineScroller() {
           }}
           className={[
             'pointer-events-auto flex h-7 w-7 items-center justify-center',
-            'rounded-r-md border border-ink-600 bg-ink-900/90 text-sm font-bold',
-            'text-ink-300 backdrop-blur-sm transition-opacity active:bg-ink-700',
-            'disabled:cursor-not-allowed disabled:opacity-30',
+            // Sans cartouche ni bordure, comme les commandes de l'apercu.
+            'text-sm font-bold text-ink-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]',
+            'transition-opacity active:opacity-60',
+            'disabled:cursor-not-allowed disabled:opacity-25',
           ].join(' ')}
         >
           +

@@ -10,7 +10,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDrag } from '@use-gesture/react';
 
-import { PlusIcon } from '../../components/ui/icons';
+import { PlusIcon, ScissorsIcon } from '../../components/ui/icons';
 
 import { useProjectStore } from '../../store/useProjectStore';
 import { usePlaybackStore } from '../../store/usePlaybackStore';
@@ -104,7 +104,24 @@ export function ClipStrip({ geometry, centerTime }: ClipStripProps) {
         className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-beat-400"
         style={{ left: CONTROLS_W + viewportWidth / 2 }}
       >
-        <span className="absolute -top-0 left-1/2 size-2 -translate-x-1/2 rounded-full bg-beat-400" />
+        {/*
+          Ciseaux en tete du trait, a la place de la simple boule.
+
+          L'appui long sur le montage sort l'outil de coupe (voir
+          `TimelineScroller`), mais RIEN ne le disait: un geste cache n'existe
+          pas pour qui ne le connait pas deja. Le pictogramme est pose la ou la
+          coupe se produira — sur le trait — donc il annonce l'action ET son
+          point d'application d'un seul coup d'oeil.
+
+          Decoratif: il ne recoit pas le geste, c'est la bande entiere qui
+          l'ecoute. Un bouton de 12 px serait de toute facon intouchable.
+        */}
+        <span
+          aria-hidden="true"
+          className="absolute -top-0.5 left-1/2 flex size-3.5 -translate-x-1/2 items-center justify-center rounded-full bg-beat-400 text-ink-950 [&>svg]:size-2.5"
+        >
+          <ScissorsIcon />
+        </span>
       </div>
 
       {/* L'invite se pose SOUS le bouton d'ajout, qui occupe le centre: centree

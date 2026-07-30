@@ -163,7 +163,16 @@ export function PreviewControls() {
           onClick={() => setPlaying(!isPlaying)}
           disabled={!hasClips}
           aria-label={isPlaying ? t('editor:transport.pause') : t('editor:transport.play')}
-          className="flex size-14 items-center justify-center rounded-full border border-ink-100/15 bg-ink-950/55 text-beat-400 backdrop-blur-md transition-colors active:bg-ink-950/75 disabled:opacity-60 [&>svg]:size-7"
+          /*
+            Cible de 44 px conservee, ICONE reduite a 28 px.
+
+            La regle des 44 px du projet porte sur la zone TOUCHABLE, pas sur ce
+            qu'on voit: on peut donc alleger le dessin sans rendre le bouton
+            plus difficile a viser. L'ombre portee remplace la pastille — sur
+            une image claire, une icone sans fond ni ombre tombe sous le seuil
+            de contraste de 4,5:1.
+          */
+          className="flex size-11 items-center justify-center text-beat-400 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] transition-opacity active:opacity-70 disabled:opacity-40 [&>svg]:size-7"
         >
           {isPlaying ? <PauseIcon /> : <PlayIcon />}
         </button>
@@ -180,7 +189,17 @@ export function PreviewControls() {
   );
 }
 
-/** Bouton translucide: voile sombre + flou, pour rester lisible sur toute image. */
+/**
+ * Bouton nu: l'icone seule, sans pastille ni bordure.
+ *
+ * La lisibilite ne vient plus d'un fond mais d'une OMBRE PORTEE. Sur une image
+ * claire, une icone `ink-100` posee sans rien passerait sous le seuil de
+ * contraste de 4,5:1 que le projet s'impose; l'ombre la detoure quel que soit
+ * le fond, sans ajouter le disque qui alourdissait l'apercu.
+ *
+ * La cible reste a 44 px: c'est la zone touchable, invisible ici, et la reduire
+ * rendrait les commandes penibles a viser au pouce.
+ */
 function GlassButton({
   label,
   onClick,
@@ -198,7 +217,7 @@ function GlassButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex size-11 items-center justify-center rounded-full border border-ink-100/10 bg-ink-950/50 text-ink-100 backdrop-blur-md transition-colors active:bg-ink-950/70 disabled:opacity-60 [&>svg]:size-4"
+      className="flex size-11 items-center justify-center text-ink-50 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] transition-opacity active:opacity-70 disabled:opacity-40 [&>svg]:size-5"
     >
       {children}
     </button>
@@ -219,7 +238,7 @@ function Timecode({ duration, locale }: { duration: number; locale: string }) {
   );
 
   return (
-    <div className="tnum rounded-full bg-ink-950/50 px-2.5 py-1 text-[11px] leading-tight text-ink-200 backdrop-blur-md">
+    <div className="tnum px-1 text-[11px] leading-tight text-ink-100 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
       {formatTimecode(time, locale)} / {formatTimecode(duration, locale)}
     </div>
   );

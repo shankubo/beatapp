@@ -23,7 +23,6 @@ import { useCropGesture } from './useCropGesture';
 import { useFraming } from './useFraming';
 import { FramingGuides } from './FramingGuides';
 import { PreviewZoom } from './PreviewZoom';
-import { videoDuration } from '../../domain/timeline';
 
 /** Resolution maximale du backing store de l'apercu. */
 const MAX_PREVIEW_WIDTH = 720;
@@ -45,7 +44,6 @@ export function PreviewCanvas() {
   const setFullscreen = useUiStore((state) => state.setFullscreen);
 
   const hasClips = project.videoTrack.clips.length > 0;
-  const duration = videoDuration(project.videoTrack);
 
   // Recadrage direct au doigt. Desactive pendant la lecture: pincer une image
   // qui defile ne veut rien dire, et le geste entrerait en concurrence avec le
@@ -250,23 +248,23 @@ export function PreviewCanvas() {
             type="button"
             onClick={() => setFullscreen(true)}
             aria-label={t('preview.fullscreen')}
-            className="flex size-9 items-center justify-center rounded-full bg-ink-950/60 text-ink-200 backdrop-blur-sm active:bg-ink-950/85 [&>svg]:size-4"
+            // Icone nue et ombre portee, comme les commandes de lecture: la
+            // pastille alourdissait l'apercu sans rien apporter a la lisibilite.
+            className="flex size-11 items-center justify-center text-ink-50 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] transition-opacity active:opacity-70 [&>svg]:size-5"
           >
             <ExpandIcon />
           </button>
         </div>
       )}
 
-      {hasClips && !isPlaying && duration > 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          {/* Pastille de lecture: discrete, elle ne masque pas l'image. */}
-          <span className="flex size-14 items-center justify-center rounded-full bg-ink-950/45 backdrop-blur-sm">
-            <svg viewBox="0 0 24 24" className="size-7 text-ink-50" aria-hidden="true">
-              <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
-            </svg>
-          </span>
-        </div>
-      )}
+      {/*
+        Plus de pastille de lecture au centre.
+
+        Elle datait d'avant les commandes flottantes: il n'y avait alors aucun
+        bouton de lecture SUR l'image. Depuis, `PreviewControls` en pose un juste
+        en dessous — deux symboles « play » a l'ecran, dont un seul reagit au
+        toucher, laissaient croire que l'image entiere etait cliquable.
+      */}
     </div>
   );
 }

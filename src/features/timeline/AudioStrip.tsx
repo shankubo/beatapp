@@ -61,7 +61,9 @@ export function AudioStrip({ geometry, centerTime }: AudioStripProps) {
   return (
     <div
       aria-label={t('editor:timeline.audioTrack')}
-      className="relative shrink-0 overflow-hidden border-b border-ink-700 bg-ink-950"
+      // Fond transparent: la bande audio se pose sur la timeline sans y ajouter
+      // un aplat de plus. Seule la bordure basse la separe de la suivante.
+      className="relative shrink-0 overflow-hidden border-b border-ink-700/60 bg-transparent"
       style={{ height: tracks.length * LANE_H }}
     >
       <div
@@ -212,11 +214,18 @@ function AudioLane({
     ? t('editor:originalAudio.trackOf', { name })
     : t('editor:audio.music');
 
+  /*
+    Blocs sans aplat: seule la bordure et le texte portent la couleur.
+
+    Le remplissage `/15` masquait la forme d'onde dessinee dessous — c'est
+    pourtant elle qui dit ou le son monte, donc ou couper. La bordure suffit a
+    delimiter le bloc, et la famille de couleur reste lisible.
+  */
   const tone = startsAfterEnd
-    ? 'border-danger-500 bg-danger-500/15 text-danger-500'
+    ? 'border-danger-500 text-danger-500'
     : isOriginal
-      ? 'border-media-400/50 bg-media-400/15 text-media-400'
-      : 'border-audio-400/50 bg-audio-400/15 text-audio-400';
+      ? 'border-media-400/60 text-media-400'
+      : 'border-audio-400/60 text-audio-400';
 
   return (
     <>

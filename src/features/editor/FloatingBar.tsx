@@ -6,11 +6,15 @@
  * Plus aucune rangee fixe: l'image occupe tout l'ecran, et les commandes
  * flottent dessus comme sur Instagram.
  *
- * Chaque element porte son propre voile sombre + flou, jamais une transparence
- * nue: sur une image claire, du texte ink-50 sans fond passe sous le seuil de
- * contraste de 4,5:1 que le projet s'impose. C'est le voile local qui rend le
- * « transparent » compatible avec la lisibilite — et il est mesure plus bas
- * dans les tests.
+ * Icones NUES, detourees par une ombre portee et non par une pastille.
+ *
+ * Les cartouches sombres avaient d'abord ete poses pour garantir le contraste;
+ * ils alourdissaient l'apercu au point de le decouper en vignettes. L'ombre
+ * (`drop-shadow`) remplit le meme role — elle detoure le glyphe quel que soit le
+ * fond, y compris un ciel blanc — sans ajouter de surface opaque.
+ *
+ * La cible tactile reste a 44 px partout: c'est la zone TOUCHABLE, invisible,
+ * et la reduire avec l'icone rendrait les commandes penibles a viser au pouce.
  */
 
 import { useState } from 'react';
@@ -18,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { MenuIcon } from '../../components/ui/icons';
+import { MenuIcon, ShareIcon } from '../../components/ui/icons';
 import { videoDuration } from '../../domain/timeline';
 
 export function FloatingBar() {
@@ -44,7 +48,9 @@ export function FloatingBar() {
         type="button"
         onClick={() => setMenuOpen(true)}
         aria-label={t('menu:open')}
-        className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-ink-100/10 bg-ink-950/55 text-ink-50 backdrop-blur-md active:bg-ink-950/75 [&>svg]:size-5"
+        // Icone nue: la cible reste a 44 px, seule la pastille disparait. C'est
+        // l'ombre portee qui garantit le contraste sur une image claire.
+        className="pointer-events-auto flex size-11 shrink-0 items-center justify-center text-ink-50 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] transition-opacity active:opacity-70 [&>svg]:size-6"
       >
         <MenuIcon />
       </button>
@@ -67,20 +73,29 @@ export function FloatingBar() {
           type="button"
           onClick={() => setEditingName(true)}
           aria-label={t('editor:project.rename')}
-          className="pointer-events-auto min-w-0 flex-1 truncate rounded-full bg-ink-950/40 px-3 py-1.5 text-left text-sm font-semibold text-ink-50 backdrop-blur-sm"
+          className="pointer-events-auto min-w-0 flex-1 truncate px-1 text-left text-sm font-semibold text-ink-50 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
         >
           {/* Nom saisi par l'utilisateur: rendu comme du texte, jamais interprete. */}
           {project.name}
         </button>
       )}
 
+      {/*
+        Export en ICONE de partage, comme les autres commandes flottantes.
+
+        Il garde `beat-400` — c'est l'action terminale du parcours, et la seule
+        de cette rangee a etre teintee. Le libelle reste porte par `aria-label`
+        et par l'entree « Exporter le reel » du menu: une icone seule ne dit pas
+        ce qu'elle fait a qui la decouvre.
+      */}
       <button
         type="button"
         onClick={() => setExportOpen(true)}
         disabled={!canExport}
-        className="pointer-events-auto min-h-9 shrink-0 rounded-full bg-beat-400/90 px-3.5 text-xs font-bold text-ink-950 backdrop-blur-md active:bg-beat-500 disabled:opacity-60"
+        aria-label={t('export:cta')}
+        className="pointer-events-auto flex size-11 shrink-0 items-center justify-center text-beat-400 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] transition-opacity active:opacity-70 disabled:opacity-40 [&>svg]:size-6"
       >
-        {t('export:cta')}
+        <ShareIcon />
       </button>
     </div>
   );

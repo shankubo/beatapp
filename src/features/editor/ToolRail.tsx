@@ -71,7 +71,9 @@ export function ToolRail() {
       */
       className="pointer-events-none absolute inset-y-0 right-0 z-30 flex items-center pr-1.5"
     >
-      <ul className="pointer-events-auto flex flex-col gap-0.5 rounded-2xl border border-ink-700/40 bg-ink-950/55 p-1 backdrop-blur-md">
+      {/* Icones nues, sans cartouche: le panneau sombre pesait autant que les
+          six outils reunis. L'ombre portee suffit a les detourer. */}
+      <ul className="pointer-events-auto flex flex-col gap-0.5">
         {TOOLS.map(({ id, icon: Icon }) => {
           const active = activeTab === id;
           // L'outil Beat porte un point chartreuse quand une analyse existe:
@@ -89,11 +91,28 @@ export function ToolRail() {
                 aria-pressed={active}
                 aria-label={t(`tabs.${id}`)}
                 className={[
-                  'relative flex size-11 items-center justify-center rounded-xl transition-colors [&>svg]:size-5',
-                  active ? 'bg-beat-400/20 text-beat-400' : 'text-ink-200 active:bg-ink-800/70',
+                  'relative flex size-11 items-center justify-center transition-opacity [&>svg]:size-5',
+                  // L'ombre remplace le cartouche: sur une image claire, une
+                  // icone posee nue tomberait sous le seuil de 4,5:1.
+                  'drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] active:opacity-70',
+                  active ? 'text-beat-400' : 'text-ink-50',
                 ].join(' ')}
               >
                 <Icon />
+                {/*
+                  Trait chartreuse a droite de l'outil actif.
+
+                  La couleur seule ne suffisait plus une fois le cartouche
+                  retire: `beat-400` sur `ink-50` reste distinguable, mais pas
+                  d'un coup d'oeil sur une image qui change a chaque plan. Le
+                  trait, lui, se voit quel que soit le fond.
+                */}
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-0.5 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-beat-400"
+                  />
+                )}
                 {showBeatDot && !active && (
                   <span
                     aria-hidden="true"
