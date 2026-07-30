@@ -146,6 +146,32 @@ export async function extractAudioFromVideo(file: File): Promise<Blob> {
 }
 
 /**
+ * Un MP4 sans piste video est-il un fichier AUDIO ?
+ *
+ * Bug corrige: mediabunny ecrit la marque `ftyp` **isom** meme quand la sortie
+ * ne contient que du son. `sniffFile` classait donc l'audio extrait en
+ * `video/mp4`, et le reimport en `accept: ['audio']` le rejetait — « Ce format
+ * de fichier n'est pas pris en charge » juste apres une extraction reussie.
+ *
+ * Les marques `M4A `/`mp4a` ne suffisent pas: rien n'oblige un encodeur a les
+ * poser. Seule l'ABSENCE de piste video tranche, et elle se lit dans les
+ * entetes du conteneur sans decoder quoi que ce soit.
+ */
+export async function isAudioOnlyContainer(file: Blob): Promise<boolean> {
+  try {
+    const { ALL_FORMATS, BlobSource, Input } = await import('mediabunny');
+    const input = new Input({ formats: ALL_FORMATS, source: new BlobSource(file) });
+    const [video, audio] = await Promise.all([
+      input.getPrimaryVideoTrack(),
+      input.getPrimaryAudioTrack(),
+    ]);
+    return video === null && audio !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Ecrit un `AudioBuffer` deja monte en fichier M4A.
  *
  * Ici le reencodage est INEVITABLE, contrairement a l'extraction: une piste

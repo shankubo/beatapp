@@ -176,6 +176,27 @@ export async function validateFile(
   }
 
   if (options.accept && !options.accept.includes(sniffed.kind)) {
+    /*
+      Rattrapage: un MP4 SANS piste video est un fichier audio.
+
+      Bug mesure: la bande son extraite d'une video sort avec la marque `ftyp`
+      **isom** — celle d'un MP4 generique — et non `M4A `. Les octets de tete la
+      classaient donc en `video/mp4`, et l'import en `accept: ['audio']` la
+      refusait avec « Ce format de fichier n'est pas pris en charge », juste
+      apres une extraction pourtant reussie.
+
+      Les marques ne suffisent pas a trancher: rien n'oblige un encodeur a poser
+      `M4A `. Seule l'absence de piste video le fait, et on ne va la verifier que
+      dans ce cas precis — ouvrir le conteneur coute une lecture d'entetes, qu'on
+      ne veut pas payer sur le chemin normal.
+    */
+    const audioWanted = options.accept.includes('audio');
+    if (audioWanted && sniffed.kind === 'video') {
+      const { isAudioOnlyContainer } = await import('../audio/extractAudio');
+      if (await isAudioOnlyContainer(file)) {
+        return { ok: true, kind: 'audio', mimeType: 'audio/mp4' };
+      }
+    }
     return { ok: false, i18nKey: 'errors:import.unsupportedType' };
   }
 

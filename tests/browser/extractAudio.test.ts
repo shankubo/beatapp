@@ -18,6 +18,7 @@ import {
   extractAudioFromVideo,
   pickAudioExportFormat,
 } from '@/features/audio/extractAudio';
+import { importFile } from '@/features/import/importMedia';
 
 /**
  * Le navigateur sait-il encoder de l'AAC ?
@@ -155,4 +156,95 @@ describe('repli Opus', () => {
     const decoded = await check.decodeAudioData(await blob.arrayBuffer());
     expect(decoded.duration).toBeGreaterThan(0.5);
   }, 30_000);
+});
+
+describe('reimport de l’audio extrait', () => {
+  it('accepte un MP4 sans piste video comme fichier audio', async ({ skip }) => {
+    skip(!(await aacAvailable()), 'AAC non encodable par ce navigateur');
+
+    const { validateFile, sniffFile } = await import('@/features/import/validateFile');
+
+    const video = await makeAacFile();
+    const extracted = await extractAudioFromVideo(video);
+    const asFile = new File([extracted], 'son.m4a', { type: extracted.type });
+
+    /*
+      La marque `ftyp` reste `isom`: mediabunny ne pose pas `M4A ` meme sur une
+      sortie purement sonore. Les octets de tete classent donc le fichier en
+      video — c'est attendu, et c'est ce qui rendait le rattrapage necessaire.
+    */
+    const head = new Uint8Array(await asFile.slice(8, 12).arrayBuffer());
+    expect(String.fromCharCode(...head)).toBe('isom');
+    expect((await sniffFile(asFile))?.kind).toBe('video');
+
+    // Le rattrapage: sans piste video, le fichier est accepte comme audio.
+    const result = await validateFile(asFile, { accept: ['audio'] });
+    expect(result.ok).toBe(true);
+    expect(result.ok && result.kind).toBe('audio');
+  }, 30_000);
+
+  it('ne requalifie pas un fichier image en audio', async () => {
+    const { validateFile } = await import('@/features/import/validateFile');
+
+    // PNG minimal: le rattrapage ne doit s'appliquer qu'aux conteneurs video.
+    const png = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    ]);
+    const file = new File([png], 'i.png', { type: 'image/png' });
+
+    const result = await validateFile(file, { accept: ['audio'] });
+    expect(result.ok).toBe(false);
+  });
+});
+
+/** Vrai MP4: image ET son, comme un fichier venant d'un telephone. */
+async function makeRealVideo(): Promise<File> {
+  const { CanvasSource, AudioBufferSource, Output, BufferTarget, Mp4OutputFormat } =
+    await import('mediabunny');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 320;
+  canvas.height = 240;
+  const ctx = canvas.getContext('2d')!;
+
+  const out = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
+  const video = new CanvasSource(canvas, { codec: 'avc', bitrate: 500_000 });
+  const audio = new AudioBufferSource({ codec: 'aac', bitrate: 128_000 });
+  out.addVideoTrack(video);
+  out.addAudioTrack(audio);
+  await out.start();
+
+  for (let i = 0; i < 10; i++) {
+    ctx.fillStyle = i % 2 ? '#fff' : '#000';
+    ctx.fillRect(0, 0, 320, 240);
+    await video.add(i / 10, 1 / 10);
+  }
+  video.close();
+
+  const ac = new OfflineAudioContext(1, 48_000, 48_000);
+  const osc = ac.createOscillator();
+  osc.connect(ac.destination);
+  osc.start();
+  await audio.add(await ac.startRendering());
+  audio.close();
+  await out.finalize();
+
+  return new File([out.target.buffer!], 'clip.mp4', { type: 'video/mp4' });
+}
+
+describe('parcours complet du studio', () => {
+  it('extrait le son d’une vraie video et le reimporte comme audio', async () => {
+    const video = await makeRealVideo();
+
+    const extracted = await extractAudioFromVideo(video);
+    const asFile = new File([extracted], 'clip.m4a', { type: extracted.type });
+
+    // C'est l'etape qui echouait: « Ce format de fichier n'est pas pris en
+    // charge », juste apres une extraction pourtant reussie.
+    const { asset } = await importFile(asFile, { accept: ['audio'] });
+
+    expect(asset.kind).toBe('audio');
+    expect(asset.duration).toBeGreaterThan(0.5);
+  }, 60_000);
 });
