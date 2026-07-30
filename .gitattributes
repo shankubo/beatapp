@@ -1,0 +1,12 @@
+# Les fichiers batch DOIVENT garder des fins de ligne CRLF.
+#
+# Piege mesure: en LF, `cmd.exe` ne reconnait pas la fin des lignes `rem` et
+# tente d'executer le commentaire mot par mot — le script part en salve de
+# « n'est pas reconnu en tant que commande interne ». Sans cette regle, un
+# clone sous Linux ou un `core.autocrlf=input` casserait deploy.bat.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Le shell POSIX est l'inverse: un `\r` en fin de shebang rend le script
+# introuvable (« bad interpreter »).
+*.sh text eol=lf

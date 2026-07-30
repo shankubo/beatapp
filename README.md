@@ -20,6 +20,25 @@ npm run dev:lan        # accessible depuis un téléphone sur le réseau local
 | `npm test` | Tests unitaires (domaine, rythme, validation) |
 | `npm run test:browser` | Tests dans un vrai Chromium (export MP4, WebCodecs) |
 | `npm run i18n:check` | Cohérence des traductions fr / en |
+| `npm run steps:images` | Régénère les visuels de `public/steps/` depuis `assets/sources/` |
+
+## Déployer
+
+```bat
+deploy.bat "message de commit"
+```
+
+Un seul geste, de la vérification à la mise en ligne : portes du projet →
+commit → push → construction de l'image sur GitHub Actions → attente que le
+Raspberry Pi serve réellement la nouvelle version. Le script s'arrête à la
+première erreur, et les utilisateurs n'ont rien à faire (la PWA est en
+`autoUpdate`).
+
+**Il vérifie la mise en ligne par le type MIME, pas par le code HTTP.** nginx
+sert la PWA avec un repli `try_files … /index.html` : une URL d'asset qui
+n'existe pas renvoie donc **200** avec le contenu de l'index. Un `.webp` absent
+répondait « 200 OK » de façon parfaitement crédible. Seul `image/webp` contre
+`text/html` distingue un fichier réellement présent.
 
 ## Ce que fait l'application
 

@@ -168,6 +168,18 @@ curl -I https://app.francotamouls.com/
 
 C'est tout. Chaque push sur `main` sera servi automatiquement dans la minute.
 
+## Tout automatiser depuis Windows
+
+```bat
+deploy.bat "message de commit"
+```
+
+À la racine du dépôt. Il enchaîne les portes du projet, le commit, le push,
+attend la fin du workflow GitHub Actions, puis sonde le site jusqu'à ce que le
+conteneur serve réellement la nouvelle version — en testant le **type MIME**,
+pour la raison expliquée juste en dessous. En cas d'échec au dernier stade, il
+affiche la marche à suivre du paragraphe « Si le conteneur ne se met pas à jour ».
+
 ## Vérifier qu'un déploiement a bien eu lieu
 
 Le piège : `curl -I .../beatapp/steps/promo-720.webp` renvoie **200 même quand le
