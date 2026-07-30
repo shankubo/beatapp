@@ -168,6 +168,55 @@ curl -I https://app.francotamouls.com/
 
 C'est tout. Chaque push sur `main` sera servi automatiquement dans la minute.
 
+## Vérifier qu'un déploiement a bien eu lieu
+
+Le piège : `curl -I .../beatapp/steps/promo-720.webp` renvoie **200 même quand le
+fichier n'existe pas**, parce que nginx retombe sur `index.html` (`try_files`).
+Un code 200 ne prouve donc rien. C'est le **type MIME** qui tranche :
+
+```bash
+# Doit répondre image/webp. Si c'est text/html, l'ancien conteneur tourne encore.
+curl -sI https://app.francotamouls.com/beatapp/steps/promo-720.webp \
+  | grep -i content-type
+
+# Comparer le bundle servi à celui du dernier build
+curl -s https://app.francotamouls.com/beatapp/ | grep -oE 'assets/index-[^"]+\.js'
+```
+
+### Si le conteneur ne se met pas à jour
+
+Watchtower tire depuis un paquet **privé** : sans authentification au registre,
+il échoue silencieusement, boucle sans rien faire, et le site continue de servir
+l'ancienne version. Deux issues, au choix :
+
+```bash
+# A. Rendre le paquet public — le plus simple, l'image ne contient que des
+#    fichiers statiques déjà publics sur le site.
+#    github.com/users/shankubo/packages/container/beatapp/settings
+#    → « Change visibility » → Public
+
+# B. Authentifier le RPi une fois pour toutes (jeton classique, read:packages)
+echo 'LE_JETON' | docker login ghcr.io -u shankubo --password-stdin
+sudo mkdir -p /root/.docker && sudo cp ~/.docker/config.json /root/.docker/
+docker restart beatapp-watchtower
+```
+
+> Watchtower tourne en `root` : le `docker login` d'un utilisateur normal ne lui
+> sert à rien, d'où la copie du `config.json`.
+
+Diagnostic sur la machine :
+
+```bash
+docker logs --tail 50 beatapp-watchtower   # « unauthorized » ? c'est le cas ci-dessus
+docker compose -f /srv/beatapp/docker-compose.yml pull   # reproduit l'erreur en clair
+```
+
+Mise à jour immédiate, sans attendre Watchtower :
+
+```bash
+cd /srv/beatapp && docker compose pull && docker compose up -d
+```
+
 ## Commandes utiles
 
 ```bash
