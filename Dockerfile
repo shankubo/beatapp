@@ -27,14 +27,13 @@ COPY . .
 ARG BASE_PATH=/beatapp/
 ENV BASE_PATH=$BASE_PATH
 
-# `build:noversion` et non `build`: ce dernier incremente la version dans
-# package.json. Fait ICI, l'increment vivrait dans l'image sans jamais revenir
-# au depot — la version affichee par l'application ne correspondrait donc a
-# aucun commit. Le numero est deja pose par le poste qui publie.
-#
 # Les portes du projet (typecheck, lint, tests) tournent en amont dans le
 # workflow: les rejouer ici doublerait le temps de build sans rien verifier.
-RUN npm run build:noversion
+#
+# `build` n'incremente plus la version: l'increment appartient au deploiement
+# (`npm run version:bump`, appele une seule fois par deploy.bat), pas a la
+# construction.
+RUN npm run build
 
 # --- Etape 2: service ---
 FROM nginx:1.27-alpine

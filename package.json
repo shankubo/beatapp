@@ -1,14 +1,14 @@
 {
   "name": "beatapp",
   "private": true,
-  "version": "0.1.11",
+  "version": "0.1.8",
   "type": "module",
   "description": "PWA mobile-first pour creer des reels Instagram / WhatsApp, 100% cote client",
   "scripts": {
     "dev": "vite",
     "dev:lan": "vite --host",
-    "build": "node scripts/bump-version.mjs && tsc -b && vite build",
-    "build:noversion": "tsc -b && vite build",
+    "build": "tsc -b && vite build",
+    "version:bump": "node scripts/bump-version.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc -b",

@@ -98,6 +98,17 @@ if not defined MODIFIE (
   echo [INFO] Arbre propre, mais des commits locaux restent a pousser.
 )
 
+rem --- 3b. Numero de version --------------------------------------------------
+rem
+rem Increment ICI, une seule fois par deploiement, et non dans `npm run build`.
+rem
+rem Piege mesure: rattache au build, le numero comptait les CONSTRUCTIONS et non
+rem les publications. Une seule journee de mise au point l'a fait passer de
+rem 0.1.6 a 0.1.11 pour un unique commit — le numero ne disait plus rien de ce
+rem qui etait en ligne, alors que c'est precisement son role.
+echo [0/8] Numero de version...
+call npm run version:bump || (echo [ECHEC] increment de version. & goto :erreur)
+
 rem --- 4. Regeneration des visuels -------------------------------------------
 rem Les images de public/steps/ derivent de assets/sources/. Les regenerer ici
 rem evite de publier une vignette obsolete apres retouche d'une source.
