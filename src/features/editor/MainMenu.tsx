@@ -362,18 +362,56 @@ function UpdateEntry() {
   const check = async () => {
     setChecking(true);
     try {
+      /*
+        La comparaison de version passe AVANT le service worker.
+
+        Bug corrige: un retour anticipe annoncait « a jour » des que le service
+        worker etait absent — navigation privee, onglet non installe, ou simple
+        rechargement pendant lequel il n'est pas encore actif. Le serveur
+        n'etait alors jamais interroge, et le message etait une affirmation sans
+        verification.
+      */
       const registration = await navigator.serviceWorker?.getRegistration();
-      if (!registration) {
-        // Pas de service worker: onglet non installe, ou navigation privee.
-        pushToast({ i18nKey: 'menu:about.upToDate', tone: 'info' });
-        return;
+      await registration?.update();
+
+      /*
+        Verification COMPLEMENTAIRE par l'index.
+
+        `registration.update()` seul ne suffisait pas: il compare le `sw.js`
+        recu, et un CDN qui le sert depuis son cache le rend identique a celui
+        deja actif — l'application annoncait alors « a jour » alors qu'une
+        nouvelle version etait bel et bien deployee.
+
+        On relit donc l'index en forcant le contournement des caches, et on
+        compare le nom hache du bundle a celui de la page courante. Vite derive
+        ce nom du CONTENU: s'il differe, le serveur a autre chose que nous.
+      */
+      let serverDiffers = false;
+      try {
+        /*
+          Parametre unique + `cache: 'reload'`.
+
+          Piege mesure: `cache: 'reload'` seul ne contourne PAS le service
+          worker — la requete lui est toujours remise, et il repond depuis son
+          precache. L'index recu etait donc toujours celui de la version
+          installee, jamais celui du serveur, et la comparaison ne pouvait rien
+          detecter. Une URL unique force un vrai aller-retour reseau.
+        */
+        const response = await fetch(
+          `${import.meta.env.BASE_URL}index.html?v=${Date.now()}`,
+          { cache: 'reload' },
+        );
+        const html = await response.text();
+        const served = /assets\/index-[A-Za-z0-9_-]+\.js/.exec(html)?.[0];
+        const current = [...document.querySelectorAll('script[src]')]
+          .map((node) => (node as HTMLScriptElement).src)
+          .find((src) => /assets\/index-/.test(src));
+        if (served && current && !current.includes(served)) serverDiffers = true;
+      } catch {
+        // Hors ligne: on s'en remet au seul service worker.
       }
 
-      await registration.update();
-
-      // `installing` ou `waiting` non nuls = une version differente a ete
-      // trouvee. Sinon le fichier servi est identique a celui deja actif.
-      if (registration.installing || registration.waiting) {
+      if (registration?.installing || registration?.waiting || serverDiffers) {
         pushToast({ i18nKey: 'menu:about.updateFound', tone: 'info' });
         // Laisse le toast s'afficher avant de recharger.
         window.setTimeout(() => window.location.reload(), 1200);

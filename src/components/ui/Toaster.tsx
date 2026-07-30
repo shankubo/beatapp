@@ -38,7 +38,7 @@ function ToastRow({ toast }: { toast: Toast }) {
   // rend la cle du toast acceptable par `t()` sans assertion. Ajouter une cle
   // de toast dans un namespace absent d'ici la rendrait irresoluble — erreur
   // de compilation, mais dont le message pointe ce fichier et non le coupable.
-  const { t } = useTranslation(['common', 'editor', 'errors', 'samples']);
+  const { t } = useTranslation(['common', 'editor', 'errors', 'samples', 'install', 'menu']);
   const dismiss = useUiStore((state) => state.dismissToast);
 
   useEffect(() => {
