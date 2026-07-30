@@ -1,0 +1,73 @@
+{
+  "open": "Menu",
+  "title": "Menu",
+  "sections": {
+    "project": "Projet",
+    "import": "Importer",
+    "sync": "Synchroniser",
+    "edit": "Éditer",
+    "export": "Exporter",
+    "config": "Configuration",
+    "about": "À propos"
+  },
+  "project": {
+    "new": "Nouveau reel",
+    "newHint": "Repart d'un montage vierge",
+    "rename": "Renommer le reel",
+    "templates": "Modèles de reels",
+    "templatesHint": "Des réglages tout prêts"
+  },
+  "import": {
+    "media": "Photos et vidéos",
+    "mediaHint": "Depuis votre appareil",
+    "audio": "Musique",
+    "audioHint": "Un fichier ou une boucle intégrée",
+    "reel": "Un reel existant",
+    "reelHint": "Récupère ses plans et son son",
+    "link": "Un lien direct",
+    "linkHint": "Fichier .mp4, .jpg ou .mp3"
+  },
+  "sync": {
+    "beat": "Analyser le rythme",
+    "beatHint": "Détecte le tempo et cale les plans",
+    "distribute": "Répartir sur les temps",
+    "distributeHint": "Recale les plans sur la grille",
+    "snapping": "Aimantation",
+    "snappingHint": "Colle les bords aux temps"
+  },
+  "edit": {
+    "clip": "Modifier le plan",
+    "clipHint": "Recadrer, tourner, durée",
+    "text": "Texte et paroles",
+    "textHint": "Incrustations et karaoké",
+    "effects": "Effets et transitions",
+    "effectsHint": "Filtres, zoom lent, fondus",
+    "audio": "Montage audio",
+    "audioHint": "Bornes, coupe, volume",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "speed": "Vitesse d'aperçu",
+    "delete": "Supprimer le plan"
+  },
+  "export": {
+    "reel": "Exporter le reel",
+    "reelHint": "Fichier MP4 prêt à publier",
+    "needClips": "Ajoutez d'abord des photos ou des vidéos"
+  },
+  "config": {
+    "settings": "Réglages",
+    "settingsHint": "Format, qualité, import",
+    "language": "Langue",
+    "install": "Installer / partager",
+    "installHint": "QR code et aide à l'installation"
+  },
+  "about": {
+    "open": "À propos de BeatApp",
+    "version": "Version {{version}}",
+    "checkUpdate": "Rechercher une mise à jour",
+    "upToDate": "L'application est à jour.",
+    "updating": "Recherche en cours…",
+    "updateFound": "Nouvelle version installée — rechargement…",
+    "updateFailed": "Vérification impossible. Réessayez plus tard."
+  }
+}

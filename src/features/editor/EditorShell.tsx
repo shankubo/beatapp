@@ -9,18 +9,19 @@
  * seuls les contenus de panneau defilent.
  */
 
-import { Suspense, lazy, useEffect, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { PreviewCanvas } from '../preview/PreviewCanvas';
-import { TransportBar } from '../preview/TransportBar';
 import { TimelineScroller } from '../timeline/TimelineScroller';
-import { ToolTabs } from './ToolTabs';
-import { AppBar } from './AppBar';
 import { BottomSheet } from '../../components/ui/BottomSheet';
 import { IconButton } from '../../components/ui/IconButton';
 import { CloseIcon, SparkIcon } from '../../components/ui/icons';
 import { CollapseHandle } from '../../components/ui/CollapseHandle';
+import { FloatingBar } from './FloatingBar';
+import { ToolRail } from './ToolRail';
+import { MainMenu } from './MainMenu';
+import { PreviewControls } from '../preview/PreviewControls';
 import { Toaster } from '../../components/ui/Toaster';
 import { MediaSheet } from '../import/MediaSheet';
 import { EditSheet } from '../edit/EditSheet';
@@ -83,7 +84,7 @@ const SHEET_HEIGHT: Record<SheetSnap, string> = {
    * comprises — depasse au-dessus de la zone visible. Mesure avant correction:
    * `top: -12px`.
    */
-  full: 'calc(100% - var(--spacing-appbar) - var(--spacing-tabs) - env(safe-area-inset-bottom, 0px))',
+  full: 'calc(100% - var(--spacing-appbar) - env(safe-area-inset-bottom, 0px))',
 };
 
 /**
@@ -95,34 +96,6 @@ const SHEET_HEIGHT: Record<SheetSnap, string> = {
  * panneau, donc on la garde.
  */
 const HIDES_TIMELINE: readonly SheetSnap[] = ['full'];
-
-/**
- * Hauteur occupee par la timeline et la barre d'onglets, en mode compact.
- *
- * Le transport s'ancre juste au-dessus: pose en bas d'ecran il passerait sous la
- * timeline, et le laisser flotter au milieu de l'image le rendrait plus difficile
- * a viser au pouce qu'avant.
- */
-/** Hauteur d'une poignee de pliage. Doit suivre `CollapseHandle`. */
-const HANDLE_HEIGHT = '18px';
-
-/**
- * Ou poser le transport superpose: juste au-dessus de tout ce qui suit.
- *
- * Calcule et non code en dur, car deux elements peuvent se replier
- * independamment. Un offset fige laissait le transport flotter au milieu de
- * l'image des qu'on repliait la timeline.
- */
-function transportOffset(timelineCollapsed: boolean, tabsCollapsed: boolean): string {
-  const parts = [HANDLE_HEIGHT, 'env(safe-area-inset-bottom, 0px)'];
-  // La poignee de la timeline reste visible meme repliee.
-  parts.push(HANDLE_HEIGHT);
-  if (!timelineCollapsed) {
-    parts.push('var(--spacing-ruler)', '2 * var(--spacing-strip)');
-  }
-  if (!tabsCollapsed) parts.push('var(--spacing-tabs)');
-  return `calc(${parts.join(' + ')})`;
-}
 
 export function EditorShell() {
   const { t } = useTranslation(['editor', 'common']);
@@ -143,17 +116,12 @@ export function EditorShell() {
   const setInstallOpen = useUiStore((state) => state.setInstallOpen);
   const onboardingOpen = useUiStore((state) => state.onboardingOpen);
   const setOnboardingOpen = useUiStore((state) => state.setOnboardingOpen);
+  const menuOpen = useUiStore((state) => state.menuOpen);
+  const setMenuOpen = useUiStore((state) => state.setMenuOpen);
   const fullscreen = useUiStore((state) => state.fullscreen);
   const setFullscreen = useUiStore((state) => state.setFullscreen);
-  const compactChrome = useUiStore((state) => state.compactChrome);
   const timelineCollapsed = useUiStore((state) => state.timelineCollapsed);
   const setTimelineCollapsed = useUiStore((state) => state.setTimelineCollapsed);
-  const appBarCollapsed = useUiStore((state) => state.appBarCollapsed);
-  const setAppBarCollapsed = useUiStore((state) => state.setAppBarCollapsed);
-  const transportCollapsed = useUiStore((state) => state.transportCollapsed);
-  const setTransportCollapsed = useUiStore((state) => state.setTransportCollapsed);
-  const tabsCollapsed = useUiStore((state) => state.tabsCollapsed);
-  const setTabsCollapsed = useUiStore((state) => state.setTabsCollapsed);
 
   const sheetOpen = activeTab !== null && sheetSnap !== 'closed';
 
@@ -184,62 +152,24 @@ export function EditorShell() {
         l'apercu resterait a 291 px de large. C'est le fait de la sortir du flux
         qui rend les 44 px a l'image.
       */}
-      {!fullscreen && (
-        // En superposition ou dans le flux, la barre et sa poignee restent
-        // solidaires: seul le conteneur change.
-        <Chrome overlay={compactChrome} position="top">
-          {!appBarCollapsed && <AppBar translucent={compactChrome} />}
-          <CollapseHandle
-            side="top"
-            collapsed={appBarCollapsed}
-            onToggle={() => setAppBarCollapsed(!appBarCollapsed)}
-            label={t(appBarCollapsed ? 'editor:chrome.expandBar' : 'editor:chrome.collapseBar')}
-          />
-        </Chrome>
-      )}
-
       {/*
         L'apercu est le seul element extensible: `min-h-0` est indispensable
         pour qu'un enfant flex puisse rapetisser sous sa taille de contenu.
+
+        Il porte desormais TOUTES les commandes en surimpression — plus aucune
+        barre ne prend de hauteur. Mesure sur iPhone 15 (393 x 852): la barre du
+        haut, celle de transport et les onglets pesaient ensemble 144 px, sur
+        l'axe meme qui contraint un apercu 9:16.
       */}
-      <main className={['flex min-h-0 flex-1 flex-col', fullscreen ? 'bg-black' : ''].join(' ')}>
+      <main className={['relative flex min-h-0 flex-1 flex-col', fullscreen ? 'bg-black' : ''].join(' ')}>
         <PreviewCanvas />
+
+        {/* En plein ecran, seule la lecture subsiste: le reste ferait revenir
+            le decor qu'on vient justement de retirer. */}
+        {!fullscreen && <FloatingBar />}
+        <PreviewControls />
+        {!fullscreen && <ToolRail />}
       </main>
-
-      {/* Le transport survit au plein ecran: un apercu qu'on ne peut ni lancer
-          ni mettre en pause ne servirait qu'a regarder une image fixe. */}
-      {fullscreen ? (
-        <div className="safe-pb shrink-0">
-          <TransportBar />
-        </div>
-      ) : (
-        /*
-          En superposition, le transport s'ancre AU-DESSUS de la timeline, qui
-          garde sa place dans le flux: il doit rester atteignable au pouce, pas
-          fuir en bas d'ecran.
-
-          L'ancrage suit l'etat plie de la timeline ET des onglets: sans cela,
-          replier la timeline laissait le transport flotter 182 px trop haut, au
-          milieu de l'image.
-        */
-        <Chrome
-          overlay={compactChrome}
-          position="bottom"
-          bottomOffset={transportOffset(timelineCollapsed, tabsCollapsed)}
-        >
-          <CollapseHandle
-            side="bottom"
-            collapsed={transportCollapsed}
-            onToggle={() => setTransportCollapsed(!transportCollapsed)}
-            label={t(
-              transportCollapsed
-                ? 'editor:chrome.expandTransport'
-                : 'editor:chrome.collapseTransport',
-            )}
-          />
-          {!transportCollapsed && <TransportBar translucent={compactChrome} />}
-        </Chrome>
-      )}
 
       {/* La timeline s'efface sous un panneau haut: la laisser depasser a
           moitie derriere le panneau n'apporterait rien. */}
@@ -285,10 +215,10 @@ export function EditorShell() {
       <div
         className="absolute inset-x-0 z-20 overflow-hidden transition-[height] duration-200 ease-out"
         style={{
-          // La barre d'onglets porte `safe-pb`: sa hauteur reelle inclut la zone
-          // sure du bas, qu'il faut donc ajouter ici pour poser le panneau
-          // exactement dessus.
-          bottom: 'calc(var(--spacing-tabs) + env(safe-area-inset-bottom, 0px))',
+          // Ancre au bas de l'ecran: la barre d'onglets qui servait d'appui a
+          // disparu au profit du rail lateral, qui ne prend aucune hauteur.
+          // Seule la zone sure du bas reste a respecter.
+          bottom: 'env(safe-area-inset-bottom, 0px)',
           height: sheetOpen ? SHEET_HEIGHT[sheetSnap] : '0px',
         }}
       >
@@ -306,26 +236,7 @@ export function EditorShell() {
         )}
       </div>
 
-      {!fullscreen && (
-        <>
-          {/*
-            Replier les onglets n'agrandit PAS l'apercu.
-
-            Mesure sur 390x844: une fois la timeline repliee, le chrome tombe
-            sous 151 px et l'apercu 9:16 devient limite par la LARGEUR de l'ecran
-            (390 px). Les 56 px des onglets rendent donc de la hauteur que
-            personne ne voit. La poignee reste utile pour degager la vue — pas
-            pour agrandir l'image, et l'interface ne le promet pas.
-          */}
-          <CollapseHandle
-            side="bottom"
-            collapsed={tabsCollapsed}
-            onToggle={() => setTabsCollapsed(!tabsCollapsed)}
-            label={t(tabsCollapsed ? 'editor:chrome.expandTabs' : 'editor:chrome.collapseTabs')}
-          />
-          {!tabsCollapsed && <ToolTabs />}
-        </>
-      )}
+      {menuOpen && <MainMenu onClose={() => setMenuOpen(false)} />}
 
       <Toaster />
 
@@ -368,37 +279,6 @@ export function EditorShell() {
       {/* Charge normalement et non a la demande: cet ecran est sur le chemin du
           premier rendu, et un repli `Suspense` produirait un flash noir. */}
       {onboardingOpen && <OnboardingScreen onClose={() => setOnboardingOpen(false)} />}
-    </div>
-  );
-}
-
-/**
- * Enveloppe d'une barre de decor.
- *
- * `overlay` la sort du flux pour qu'elle se pose SUR l'apercu. Sans cette
- * bascule, chaque barre devait etre ecrite deux fois — une version dans le flux,
- * une version superposee — et la poignee de pliage avec elle.
- */
-function Chrome({
-  overlay,
-  position,
-  bottomOffset,
-  children,
-}: {
-  overlay: boolean;
-  position: 'top' | 'bottom';
-  /** Ancre du bas en mode superpose: la barre doit rester au-dessus du reste. */
-  bottomOffset?: string;
-  children: ReactNode;
-}) {
-  if (!overlay) return <>{children}</>;
-
-  return (
-    <div
-      className="pointer-events-none absolute inset-x-0 z-30"
-      style={position === 'top' ? { top: 0 } : { bottom: bottomOffset ?? 0 }}
-    >
-      <div className="pointer-events-auto">{children}</div>
     </div>
   );
 }

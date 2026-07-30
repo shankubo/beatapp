@@ -35,6 +35,9 @@ export type ToastKey =
   | 'editor:onboarding.needMedia'
   | 'install:share.copied'
   | 'install:share.copyFailed'
+  | 'menu:about.upToDate'
+  | 'menu:about.updateFound'
+  | 'menu:about.updateFailed'
   | 'errors:audio.decodeFailed'
   | 'errors:audio.analysisFailed'
   | 'errors:audio.tooQuiet'
@@ -77,36 +80,15 @@ interface UiState {
   aboutOpen: boolean;
   /** Ecran « Installer l'application » ouvert. */
   installOpen: boolean;
-  /**
-   * Mode compact: les barres se superposent a l'apercu au lieu de le rogner.
-   *
-   * Distinct du plein ecran, qui retire la timeline: ici on continue a monter,
-   * on gagne seulement la hauteur que le decor prenait.
-   */
-  compactChrome: boolean;
+  /** Menu principal ouvert. */
+  menuOpen: boolean;
   /**
    * Timeline repliee: seule une poignee reste visible.
    *
-   * Mesure sur 390x844 — c'est de loin le plus gros gain disponible (+103 px de
-   * largeur d'apercu, contre +50 pour les deux barres reunies), parce que la
-   * regle et les trois bandes pesent a elles seules 182 px.
+   * Seul element de decor a garder de la hauteur depuis que les barres sont
+   * passees en surimpression: la regle et les trois bandes pesent 182 px.
    */
   timelineCollapsed: boolean;
-  /**
-   * Barres repliees individuellement.
-   *
-   * Mesure sur 390x844, gain de LARGEUR d'apercu par pliage:
-   *   AppBar     +15 px      Transport  +15 px
-   *   Timeline   +69 px      ToolTabs    +0 px
-   *
-   * Le zero de `ToolTabs` n'est pas une erreur: des que le chrome descend sous
-   * 151 px, l'apercu 9:16 devient limite par la LARGEUR de l'ecran (390 px) et
-   * cesse de grandir. Replier les onglets reste utile pour degager la vue, pas
-   * pour agrandir l'image — et l'interface ne doit pas laisser croire l'inverse.
-   */
-  appBarCollapsed: boolean;
-  transportCollapsed: boolean;
-  tabsCollapsed: boolean;
   /**
    * Ecran de demarrage en 3 etapes.
    *
@@ -134,12 +116,9 @@ interface UiState {
   setSettingsOpen: (open: boolean) => void;
   setAboutOpen: (open: boolean) => void;
   setInstallOpen: (open: boolean) => void;
+  setMenuOpen: (open: boolean) => void;
   setTemplatesOpen: (open: boolean) => void;
-  setCompactChrome: (compact: boolean) => void;
   setTimelineCollapsed: (collapsed: boolean) => void;
-  setAppBarCollapsed: (collapsed: boolean) => void;
-  setTransportCollapsed: (collapsed: boolean) => void;
-  setTabsCollapsed: (collapsed: boolean) => void;
   setOnboardingOpen: (open: boolean) => void;
   setFullscreen: (open: boolean) => void;
 }
@@ -156,11 +135,8 @@ export const useUiStore = create<UiState>()((set) => ({
   templatesOpen: false,
   aboutOpen: false,
   installOpen: false,
-  compactChrome: false,
+  menuOpen: false,
   timelineCollapsed: false,
-  appBarCollapsed: false,
-  transportCollapsed: false,
-  tabsCollapsed: false,
   onboardingOpen: false,
   fullscreen: false,
 
@@ -200,23 +176,18 @@ export const useUiStore = create<UiState>()((set) => ({
 
   setInstallOpen: (installOpen) => set({ installOpen }),
 
+  // Ouvrir le menu referme la feuille d'outil: elle resterait vivante derriere
+  // le panneau, invisible mais active. Meme regle que la galerie de modeles.
+  setMenuOpen: (menuOpen) =>
+    set(menuOpen ? { menuOpen, activeTab: null, sheetSnap: 'closed' } : { menuOpen }),
+
   // Ouvrir la galerie referme la feuille: une feuille active derriere un ecran
   // plein est un etat invisible mais vivant. Meme regle que le plein ecran.
   setTemplatesOpen: (templatesOpen) =>
     set(templatesOpen ? { templatesOpen, activeTab: null, sheetSnap: 'closed' } : { templatesOpen }),
 
-  setCompactChrome: (compactChrome) => set({ compactChrome }),
 
   setTimelineCollapsed: (timelineCollapsed) => set({ timelineCollapsed }),
-
-  setAppBarCollapsed: (appBarCollapsed) => set({ appBarCollapsed }),
-
-  setTransportCollapsed: (transportCollapsed) => set({ transportCollapsed }),
-
-  // Replier les onglets ferme le panneau: le garder ouvert sans sa barre
-  // laisserait une feuille sans moyen d'en changer ni de la refermer.
-  setTabsCollapsed: (tabsCollapsed) =>
-    set(tabsCollapsed ? { tabsCollapsed, activeTab: null, sheetSnap: 'closed' } : { tabsCollapsed }),
 
   setOnboardingOpen: (onboardingOpen) => set({ onboardingOpen }),
 

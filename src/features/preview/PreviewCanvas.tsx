@@ -18,7 +18,7 @@ import { usePlaybackStore } from '../../store/usePlaybackStore';
 import { usePreferencesStore } from '../../store/usePreferencesStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { CompactIcon, ExpandIcon } from '../../components/ui/icons';
+import { ExpandIcon } from '../../components/ui/icons';
 import { useCropGesture } from './useCropGesture';
 import { useFraming } from './useFraming';
 import { FramingGuides } from './FramingGuides';
@@ -43,8 +43,6 @@ export function PreviewCanvas() {
 
   const fullscreen = useUiStore((state) => state.fullscreen);
   const setFullscreen = useUiStore((state) => state.setFullscreen);
-  const compactChrome = useUiStore((state) => state.compactChrome);
-  const setCompactChrome = useUiStore((state) => state.setCompactChrome);
 
   const hasClips = project.videoTrack.clips.length > 0;
   const duration = videoDuration(project.videoTrack);
@@ -248,27 +246,6 @@ export function PreviewCanvas() {
           ecran il disparait — la sortie se fait par la croix de la coquille. */}
       {!fullscreen && (
         <div className="absolute bottom-2 right-2 flex items-center gap-2">
-          {/*
-            Mode compact: les barres passent SUR l'image au lieu de la rogner.
-            Mesure sur 390x844 — l'apercu passe de 291 a 341 px de large, soit
-            17 % de plus. Les rendre seulement translucides sans les sortir du
-            flux n'aurait rien gagne: une barre translucide occupe sa hauteur.
-          */}
-          <button
-            type="button"
-            onClick={() => setCompactChrome(!compactChrome)}
-            aria-label={t('preview.compact')}
-            aria-pressed={compactChrome}
-            className={[
-              'flex size-9 items-center justify-center rounded-full backdrop-blur-sm [&>svg]:size-4',
-              compactChrome
-                ? 'bg-media-400/85 text-ink-950'
-                : 'bg-ink-950/60 text-ink-200 active:bg-ink-950/85',
-            ].join(' ')}
-          >
-            <CompactIcon />
-          </button>
-
           <button
             type="button"
             onClick={() => setFullscreen(true)}

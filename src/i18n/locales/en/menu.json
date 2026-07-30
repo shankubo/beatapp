@@ -1,0 +1,73 @@
+{
+  "open": "Menu",
+  "title": "Menu",
+  "sections": {
+    "project": "Project",
+    "import": "Import",
+    "sync": "Sync",
+    "edit": "Edit",
+    "export": "Export",
+    "config": "Settings",
+    "about": "About"
+  },
+  "project": {
+    "new": "New reel",
+    "newHint": "Start from an empty edit",
+    "rename": "Rename the reel",
+    "templates": "Reel templates",
+    "templatesHint": "Ready-made settings"
+  },
+  "import": {
+    "media": "Photos and videos",
+    "mediaHint": "From your device",
+    "audio": "Music",
+    "audioHint": "A file or a built-in loop",
+    "reel": "An existing reel",
+    "reelHint": "Takes its shots and its sound",
+    "link": "A direct link",
+    "linkHint": ".mp4, .jpg or .mp3 file"
+  },
+  "sync": {
+    "beat": "Analyse the rhythm",
+    "beatHint": "Detects the tempo and locks the shots",
+    "distribute": "Spread across the beats",
+    "distributeHint": "Re-locks the shots to the grid",
+    "snapping": "Snapping",
+    "snappingHint": "Sticks edges to the beats"
+  },
+  "edit": {
+    "clip": "Edit the shot",
+    "clipHint": "Crop, rotate, duration",
+    "text": "Text and lyrics",
+    "textHint": "Overlays and karaoke",
+    "effects": "Effects and transitions",
+    "effectsHint": "Filters, slow zoom, fades",
+    "audio": "Audio editing",
+    "audioHint": "Bounds, cut, volume",
+    "undo": "Undo",
+    "redo": "Redo",
+    "speed": "Preview speed",
+    "delete": "Delete the shot"
+  },
+  "export": {
+    "reel": "Export the reel",
+    "reelHint": "MP4 file ready to publish",
+    "needClips": "Add photos or videos first"
+  },
+  "config": {
+    "settings": "Settings",
+    "settingsHint": "Format, quality, import",
+    "language": "Language",
+    "install": "Install / share",
+    "installHint": "QR code and install help"
+  },
+  "about": {
+    "open": "About BeatApp",
+    "version": "Version {{version}}",
+    "checkUpdate": "Check for updates",
+    "upToDate": "The app is up to date.",
+    "updating": "Checking…",
+    "updateFound": "New version installed — reloading…",
+    "updateFailed": "Could not check. Try again later."
+  }
+}
