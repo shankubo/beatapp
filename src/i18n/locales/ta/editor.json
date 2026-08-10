@@ -232,6 +232,15 @@
     "fitCover": "நிரப்பு",
     "fitContain": "முழுமை",
     "kenBurns": "மெதுவான பெரிதாக்கம்",
+    "kenBurnsPresetLabel": "நகர்வு விளைவு",
+    "kenBurnsPreset": {
+      "zoomIn": "உள் பெரிதாக்கம்",
+      "zoomOut": "வெளி சிறிதாக்கம்",
+      "panLeft": "இடது நகர்வு",
+      "panRight": "வலது நகர்வு",
+      "panUp": "மேல் நகர்வு",
+      "panDown": "கீழ் நகர்வு"
+    },
     "speed": "வேகம்",
     "muteOriginal": "அசல் ஒலியை நிறுத்து",
     "filter": "வடிகட்டி",

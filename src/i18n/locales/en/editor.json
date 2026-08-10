@@ -232,6 +232,15 @@
     "fitCover": "Fill",
     "fitContain": "Fit",
     "kenBurns": "Slow zoom",
+    "kenBurnsPresetLabel": "Motion effect",
+    "kenBurnsPreset": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "panLeft": "Pan left",
+      "panRight": "Pan right",
+      "panUp": "Pan up",
+      "panDown": "Pan down"
+    },
     "speed": "Speed",
     "muteOriginal": "Mute original audio",
     "filter": "Filter",
