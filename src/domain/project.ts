@@ -20,6 +20,7 @@ import {
   type FontChoice,
   type Id,
   type ImportPreferences,
+  type KenBurns,
   type Lyrics,
   type MediaAsset,
   type NormUnit,
@@ -269,6 +270,41 @@ export function steppedScale(scale: number, direction: 1 | -1): number {
   const base = Number.isFinite(scale) ? scale : 1;
   const factor = direction === 1 ? CLIP_ZOOM_STEP : 1 / CLIP_ZOOM_STEP;
   return clamp(base * factor, MIN_CLIP_SCALE, MAX_CLIP_SCALE);
+}
+
+export type KenBurnsPreset = 'zoomIn' | 'zoomOut' | 'panLeft' | 'panRight' | 'panUp' | 'panDown';
+
+export const KEN_BURNS_PRESETS: Record<KenBurnsPreset, KenBurns> = {
+  zoomIn: { toScale: 1.12, toX: 0, toY: 0 },
+  zoomOut: { toScale: 0.88, toX: 0, toY: 0 },
+  panLeft: { toScale: 1.0, toX: -0.06, toY: 0 },
+  panRight: { toScale: 1.0, toX: 0.06, toY: 0 },
+  panUp: { toScale: 1.0, toX: 0, toY: -0.06 },
+  panDown: { toScale: 1.0, toX: 0, toY: 0.06 },
+};
+
+export const KEN_BURNS_KEYS: readonly KenBurnsPreset[] = [
+  'zoomIn',
+  'zoomOut',
+  'panLeft',
+  'panRight',
+  'panUp',
+  'panDown',
+];
+
+export function getKenBurnsPreset(kb: KenBurns | undefined): KenBurnsPreset {
+  if (!kb) return 'zoomIn';
+  for (const key of KEN_BURNS_KEYS) {
+    const val = KEN_BURNS_PRESETS[key];
+    if (
+      Math.abs(kb.toScale - val.toScale) < 0.01 &&
+      Math.abs(kb.toX - val.toX) < 0.01 &&
+      Math.abs(kb.toY - val.toY) < 0.01
+    ) {
+      return key;
+    }
+  }
+  return 'zoomIn';
 }
 
 /**

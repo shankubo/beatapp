@@ -15,7 +15,13 @@ import {
   maxTransitionDuration,
   uniformTransitionLimit,
 } from '../../domain/timeline';
-import { filterForPreset, neutralFilter } from '../../domain/project';
+import {
+  filterForPreset,
+  neutralFilter,
+  getKenBurnsPreset,
+  KEN_BURNS_PRESETS,
+  KEN_BURNS_KEYS,
+} from '../../domain/project';
 import {
   directionsFor,
   familyOf,
@@ -518,23 +524,57 @@ export function EffectsSheet() {
         />
       </section>
 
-      <label className="flex items-center justify-between gap-3 rounded-xl border border-ink-600 bg-ink-850 p-3">
-        <span className="text-sm text-ink-200">{t('editor:clip.kenBurns')}</span>
-        <input
-          type="checkbox"
-          checked={kenBurnsOn}
-          onChange={(event) =>
-            applyToScope({
-              // Un zoom de 12% sur la duree du clip: perceptible sans etre
-              // spectaculaire, ce qui est l'effet recherche.
-              kenBurns: event.target.checked
-                ? { toScale: 1.12, toX: 0, toY: 0 }
-                : undefined,
-            })
-          }
-          className="size-5 accent-[var(--color-beat-400)]"
-        />
-      </label>
+      <div className="space-y-2">
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-ink-600 bg-ink-850 p-3">
+          <span className="text-sm text-ink-200">{t('editor:clip.kenBurns')}</span>
+          <input
+            type="checkbox"
+            checked={kenBurnsOn}
+            onChange={(event) =>
+              applyToScope({
+                kenBurns: event.target.checked
+                  ? KEN_BURNS_PRESETS.zoomIn
+                  : undefined,
+              })
+            }
+            className="size-5 accent-[var(--color-beat-400)]"
+          />
+        </label>
+
+        {kenBurnsOn && (
+          <div className="space-y-1.5 pt-1">
+            <h4 className="text-xs font-medium uppercase tracking-wide text-ink-400">
+              {t('editor:clip.kenBurnsPresetLabel')}
+            </h4>
+            <div className="grid grid-cols-3 gap-2">
+              {KEN_BURNS_KEYS.map((key) => {
+                const activePreset = getKenBurnsPreset(clip.kenBurns);
+                const translationKey = `editor:clip.kenBurnsPreset.${key}` as `editor:clip.kenBurnsPreset.${(typeof KEN_BURNS_KEYS)[number]}`;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() =>
+                      applyToScope({
+                        kenBurns: KEN_BURNS_PRESETS[key],
+                      })
+                    }
+                    aria-pressed={activePreset === key}
+                    className={[
+                      'min-h-11 rounded-lg border px-1 text-[11px] font-medium',
+                      activePreset === key
+                        ? 'border-beat-400 text-beat-400'
+                        : 'border-ink-600 text-ink-200 active:bg-ink-800',
+                    ].join(' ')}
+                  >
+                    {t(translationKey)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
       <section className="space-y-2">
         <h3 className="text-xs font-medium uppercase tracking-wide text-ink-400">

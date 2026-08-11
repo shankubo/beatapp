@@ -232,6 +232,15 @@
     "fitCover": "Remplir",
     "fitContain": "Entier",
     "kenBurns": "Zoom lent",
+    "kenBurnsPresetLabel": "Effet de mouvement",
+    "kenBurnsPreset": {
+      "zoomIn": "Zoom avant",
+      "zoomOut": "Zoom arrière",
+      "panLeft": "Déplacement gauche",
+      "panRight": "Déplacement droite",
+      "panUp": "Déplacement haut",
+      "panDown": "Déplacement bas"
+    },
     "speed": "Vitesse",
     "muteOriginal": "Couper le son d'origine",
     "filter": "Filtre",
