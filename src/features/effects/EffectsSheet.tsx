@@ -549,13 +549,7 @@ export function EffectsSheet() {
             <div className="grid grid-cols-3 gap-2">
               {KEN_BURNS_KEYS.map((key) => {
                 const activePreset = getKenBurnsPreset(clip.kenBurns);
-                const translationKey = `editor:clip.kenBurnsPreset.${key}` as
-                  | 'editor:clip.kenBurnsPreset.zoomIn'
-                  | 'editor:clip.kenBurnsPreset.zoomOut'
-                  | 'editor:clip.kenBurnsPreset.panLeft'
-                  | 'editor:clip.kenBurnsPreset.panRight'
-                  | 'editor:clip.kenBurnsPreset.panUp'
-                  | 'editor:clip.kenBurnsPreset.panDown';
+                const translationKey = `editor:clip.kenBurnsPreset.${key}` as `editor:clip.kenBurnsPreset.${(typeof KEN_BURNS_KEYS)[number]}`;
                 return (
                   <button
                     key={key}
